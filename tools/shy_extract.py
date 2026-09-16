@@ -100,7 +100,7 @@ dbg.convert('RGB').save('tools/dbg_shy_inwork.png')
 print('saved tools/dbg_shy_inwork.png')
 
 # ---------- 3. 特征提取 ----------
-rgb = np.array(shy_work.convert('RGB')).astype(np.int16)
+rgb = np.array(shy_work.convert('RGB')).astype(np.int32)  # int32! 亮度公式会溢出 int16
 alpha_w = np.array(shy_work.getchannel('A'))
 H, W = alpha_w.shape
 Y, X = np.mgrid[0:H, 0:W]
@@ -122,14 +122,15 @@ skin = (R > 195) & (G > 165) & (B > 145)        # 脸部皮肤(排除棕色发�
 # 区域边界 (资产坐标, 依据 dbg_shy_inwork.png 网格目测调整)
 # 上脸带(186-232): 整片取害羞图内容(头发+皮肤+眉) —— 盖掉底图自己的眉毛/睫毛上缘,
 # 否则底图眉毛露在贴片上方, 与害羞贴片的眉毛形成"两套眉毛"的割裂感
-face_box = box(172, 186, 370, 232)
-face_box2 = box(170, 232, 378, 304)    # 下脸带: 闭眼弧+脸红+皮肤(排除头发防发丝重影)
-hand_box = box(166, 248, 344, 352)     # 手套+袖口(在领口处截断)
+face_box = box(172, 186, 370, 232)     # 上脸带: 整片收(盖掉底图眉眼)
+arm_band = box(140, 232, 400, 320)     # 手臂带: 视频已抬起的手臂+手套+袖口, 到视频衣领环上方
+lum_i = (rgb[:, :, 0] * 299 + rgb[:, :, 1] * 587 + rgb[:, :, 2] * 114) // 1000
+sat_i = rgb.max(axis=2) - rgb.min(axis=2)
+white = (lum_i > 215) & (sat_i <= 25)  # 袖口高光
 
 feat = np.zeros((H, W), dtype=bool)
-feat |= face_box & (alpha_w > 127)                                  # 上脸: 全收
-feat |= (skin | blush | dark) & face_box2 & (alpha_w > 127)
-feat |= (dark | red) & hand_box & (alpha_w > 127)
+feat |= face_box & (alpha_w > 127)                                   # 上脸: 全收
+feat |= arm_band & (red | dark | skin | blush | white) & (alpha_w > 127)
 
 # ---------- 3.5 颜色校正: 让害羞图皮肤与底图皮肤同调, 消除接缝 ----------
 # 用额头皮肤间隙配对采样(头发/眉毛/眼线都被亮度滤波排除), 取中位数色差
@@ -148,8 +149,8 @@ delta = np.round(b_med - s_med).astype(np.int16)
 print('skin color delta (shy -> base):', delta)
 shift = np.zeros_like(rgb)
 shift[:, :, 0] = delta[0]; shift[:, :, 1] = delta[1]; shift[:, :, 2] = delta[2]
-face_zone = (face_box | face_box2) & (alpha_w > 127)  # 只校正面部(手套红袖不动)
-rgb = np.where(face_zone[:, :, None], np.clip(rgb.astype(np.int16) + shift, 0, 255), rgb).astype(np.int16)
+face_zone = (face_box | arm_band) & (alpha_w > 127)  # 全贴片统一微调(色差幅度很小)
+rgb = np.where(face_zone[:, :, None], np.clip(rgb + shift, 0, 255), rgb).astype(np.int32)
 
 # 膨胀 + 羽化
 m_im = Image.fromarray((feat * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(5))

@@ -35,7 +35,7 @@ for (const name of Object.keys(M.clips || {})) {
   for (let i = 0; i < M.clips[name].count; i++) {
     const im = new Image();
     im.onload = im.onerror = () => { clipLoaded++; maybeReady(); };
-    im.src = '../assets/' + name + '_' + String(i).padStart(2, '0') + '.png';
+    im.src = '../assets/' + name + '_' + String(i).padStart(2, '0') + '.' + (M.clips[name].ext || 'png');
     clipImgs[name].push(im);
   }
 }
@@ -202,6 +202,7 @@ function update(dt) {
       shyDy = (1 - shyE) * 14;
       shyLean = shyE * Math.sin(st * Math.PI * 2 * 0.45) * 1.1;
       droop = shyE;
+
     }
   } else {
     A.shy.t = 1e9;
@@ -252,42 +253,58 @@ function update(dt) {
 }
 
 // ---------- 绘制 ----------
-function drawPart(name, ang, dy = 0) {
+function drawPart(name, ang, dy = 0, alpha = 1) {
   const sp = M.sprites[name];
-  if (!ang && !dy) { octx.drawImage(imgs[name], sp.ox, sp.oy); return; }
-  const px = sp.ox + sp.pivot[0], py = sp.oy + sp.pivot[1];
-  octx.save();
-  octx.translate(0, dy);
-  octx.translate(px, py);
-  octx.rotate(ang * RAD);
-  octx.translate(-px, -py);
-  octx.drawImage(imgs[name], sp.ox, sp.oy);
-  octx.restore();
+  if (alpha <= 0) return;
+  if (alpha < 1) octx.globalAlpha = alpha;
+  if (!ang && !dy) {
+    octx.drawImage(imgs[name], sp.ox, sp.oy);
+  } else {
+    const px = sp.ox + sp.pivot[0], py = sp.oy + sp.pivot[1];
+    octx.save();
+    octx.translate(0, dy);
+    octx.translate(px, py);
+    octx.rotate(ang * RAD);
+    octx.translate(-px, -py);
+    octx.drawImage(imgs[name], sp.ox, sp.oy);
+    octx.restore();
+  }
+  if (alpha < 1) octx.globalAlpha = 1;
 }
 
 function drawEyelid(side) {
   const r = M.eyes[side].rect;
-  const x0 = r[0] - 3, y0 = r[1] - 4, w = r[2] - r[0] + 6, h = r[3] - r[1] + 8;
+  const cx = (r[0] + r[2]) / 2, cy = (r[1] + r[3]) / 2;
+  const rx = (r[2] - r[0]) / 2 + 3, ry = (r[3] - r[1]) / 2 + 4;
   const o = currentPose;
   const cap = 0.92 + 0.08 * (o.lid || 0); // 捂脸时完全闭合
-  const coverA = clamp01(o.blink) * cap;
-  const cov = Math.min(1, coverA) * h;
-  if (cov < 2) return;
-  const skin = SKIN[side];
+  const amt = clamp01(o.blink) * cap;
+  if (amt < 0.04) return;
+  const yTop = cy - ry, yClose = yTop + amt * ry * 2;
   octx.save();
+  // 沿眼睛轮廓裁出椭圆, 皮肤从上往下压, 不露出方框角
   octx.beginPath();
-  octx.moveTo(x0, y0);
-  octx.lineTo(x0 + w, y0);
-  octx.lineTo(x0 + w, y0 + cov - 6);
-  octx.quadraticCurveTo(x0 + w / 2, y0 + cov + 5, x0, y0 + cov - 6);
-  octx.closePath();
-  octx.fillStyle = col(skin);
+  octx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  octx.clip();
+  octx.beginPath();
+  octx.rect(cx - rx - 2, yTop - 6, rx * 2 + 4, yClose - yTop + 6);
+  octx.fillStyle = col(SKIN[side]);
   octx.filter = 'blur(2px)';
   octx.fill();
   octx.filter = 'none';
   octx.fill();
+  // 接近闭合时画弧形睫毛线(闭眼线)
+  if (amt > 0.45 && !(o.lid > 0.3)) { // 捂脸时贴片自带闭眼线, 不重复画
+    const la = clamp01((amt - 0.45) / 0.4);
+    octx.beginPath();
+    octx.moveTo(cx - rx + 3, yClose - 3);
+    octx.quadraticCurveTo(cx, yClose + 4, cx + rx - 3, yClose - 3);
+    octx.strokeStyle = col(LASH, 0.9 * la);
+    octx.lineWidth = 3.4;
+    octx.lineCap = 'round';
+    octx.stroke();
+  }
   octx.restore();
-
 }
 
 let currentPose = { blink: 0, squint: 0 };
@@ -358,6 +375,9 @@ function render(pose) {
     drawEyelid('R');
     drawFace(pose);
     drawShy(pose);
+    // 害羞时纸偶自己的手淡出(视频手臂在贴片里), 平时原位补回挖孔
+    drawPart('handL', 0, 0, 1 - (pose.shyE || 0));
+    drawPart('handR', 0, 0, 1 - (pose.shyE || 0));
   }
 
   // ---- 主画布：整体缩放绘制 ----
@@ -384,7 +404,7 @@ function buildHitMask() {
   const off = document.createElement('canvas');
   off.width = hitW; off.height = hitH;
   const octx = off.getContext('2d', { willReadFrequently: true });
-  const order = ['tailL', 'tailR', 'base', 'legL', 'legR', 'earL', 'earR'];
+  const order = ['tailL', 'tailR', 'base', 'legL', 'legR', 'earL', 'earR', 'handL', 'handR'];
   for (const k of order) {
     const sp = M.sprites[k];
     octx.drawImage(imgs[k], sp.ox, sp.oy);
