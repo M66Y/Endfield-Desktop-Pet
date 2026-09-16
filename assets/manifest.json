@@ -63,15 +63,6 @@
     6
    ]
   },
-  "shy": {
-   "img": "shy.png",
-   "ox": 134,
-   "oy": 180,
-   "pivot": [
-    136,
-    91
-   ]
-  },
   "handL": {
    "img": "handL.png",
    "ox": 129,

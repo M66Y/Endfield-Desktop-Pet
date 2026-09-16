@@ -90,7 +90,7 @@ assets/            零件 PNG + 动作帧序列 + manifest.js（由管线生成�
 | 想加的东西 | 用什么 |
 | --- | --- |
 | 换表情贴片 | `tools/face.py` —— 从同角色不同表情的生成图上切脸贴回（命名 `happy` 拖拽时自动使用） |
-| 静态姿势动作 | 参考 `tools/shy_align.py`（模板匹配对齐）+ `tools/shy_extract.py`（特征提取）的捂脸图管线 |
+| 表情绘制 | 害羞的闭眼弧/腮红由 `renderer.js` 画布直接绘制（与纸偶同风格）；`tools/shy_*.py` 是备用贴图管线 |
 | 抬手零件 | `tools/arms.py` —— 从参考图切出前臂+手套并给 base 挖孔修补（害羞捂脸的手由它提供） |
 | 视频帧序列动作 | `ffmpeg` 抽帧 → `tools/happy_frames.py` 逐帧去底（灰背景泛洪 + 最大连通域 + 灰尘剔除）并按脚底锚点配准打包（开心动作即此管线，73 帧 / 12fps） |
 | 预览 / 演示动图 | `npm run preview` 生成姿势截图与帧序列，`python tools/make_gif.py` 合成 GIF |

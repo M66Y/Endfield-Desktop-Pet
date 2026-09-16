@@ -68,13 +68,33 @@ for cv in registered:
     u_x1, u_y1 = max(u_x1, int(xs.max())), max(u_y1, int(ys.max()))
 print('union rect:', u_x0, u_y0, u_x1, u_y1)
 
-# ---- 3. WebP 有损 + alpha: 体积小, 无调色板爬行, alpha 平滑 ----
+# ---- 3. 颜色向纸偶配准(均值/方差匹配) + 锐化 + WebP ----
+base_im = Image.open('assets/base.png').convert('RGBA')
+barr = np.array(base_im).astype(np.float32)
+bmask = barr[:, :, 3] > 200
+bpx = barr[:, :, :3][bmask]
+
+pool = []
+for cv in registered[::5]:
+    a = np.array(cv)[:, :, 3]
+    m = a > 200
+    px = np.array(cv).astype(np.float32)[:, :, :3][m]
+    pool.append(px[::7])
+cpx = np.concatenate(pool)
+gain = np.clip(bpx.std(axis=0) / np.maximum(cpx.std(axis=0), 1), 0.8, 1.25)
+offset = bpx.mean(axis=0) - cpx.mean(axis=0) * gain
+print('color transfer gain=', gain.round(3), 'offset=', offset.round(1))
+
 total = 0
 for i, cv in enumerate(registered):
     a = cv.getchannel('A').filter(ImageFilter.GaussianBlur(0.6))
-    cv.putalpha(a)
+    arr = np.array(cv).astype(np.float32)
+    arr[:, :, :3] = np.clip(arr[:, :, :3] * gain + offset, 0, 255)
+    out_im = Image.fromarray(arr.astype(np.uint8))
+    out_im.putalpha(a)
+    out_im = out_im.filter(ImageFilter.UnsharpMask(radius=2, percent=90, threshold=2))
     out = f'assets/happy_{i:02d}.webp'
-    cv.save(out, quality=88, method=6)
+    out_im.save(out, quality=93, method=6)
     total += os.path.getsize(out)
 print(f'{len(registered)} frames, total {total / 1e6:.2f} MB')
 

@@ -188,7 +188,7 @@ function update(dt) {
   }
 
   // 害羞捂脸：抬起(淡入+摆正) -> 捂脸揉动 -> 放下
-  let shyE = 0, shyRot = 0, shyDy = 0, droop = 0, shyLean = 0;
+  let shyE = 0, shyRot = 0, shyDy = 0, droop = 0, shyLean = 0, handAng = 0, handLift = 0;
   if (A.shy.t < 1e9 && !dragging) {
     A.shy.t += dt;
     const st = A.shy.t;
@@ -202,6 +202,8 @@ function update(dt) {
       shyDy = (1 - shyE) * 14;
       shyLean = shyE * Math.sin(st * Math.PI * 2 * 0.45) * 1.1;
       droop = shyE;
+      handAng = 135 * shyE + shyE * Math.sin(st * Math.PI * 2 * 0.8) * 2;
+      handLift = 45 * shyE;
 
     }
   } else {
@@ -246,7 +248,7 @@ function update(dt) {
     tailDyL: Math.sin(A.tailPhase * 1.3) * 1.8,
     tailDyR: Math.sin(A.tailPhase * 1.3 + 0.8) * 1.8,
     wagging: kickActive || (A.act.type === 'wag'),
-    shyE, shyRot, shyDy,
+    shyE, shyRot, shyDy, handAng, handLift,
     clip: clipPose,
   };
   return pose;
@@ -322,19 +324,30 @@ function drawFace(pose) {
   octx.drawImage(faceImgs[pose.face], f.x, f.y);
 }
 
-// 害羞捂脸贴片（闭眼+脸红+双手），画在脸部特征之上
-function drawShy(pose) {
-  if (!pose.shyE || pose.shyE < 0.01 || !imgs.shy || !imgs.shy.complete) return;
-  const sp = M.sprites.shy;
-  const px = sp.ox + sp.pivot[0], py = sp.oy + sp.pivot[1];
-  octx.save();
-  octx.globalAlpha = Math.min(1, pose.shyE * 1.2);
-  octx.translate(0, pose.shyDy || 0);
-  octx.translate(px, py);
-  octx.rotate((pose.shyRot || 0) * RAD);
-  octx.translate(-px, -py);
-  octx.drawImage(imgs.shy, sp.ox, sp.oy);
-  octx.restore();
+// 害羞表情: 闭眼弧 + 腮红, 全部画布绘制(与纸偶同风格, 不贴外部图)
+function drawShyFace(pose) {
+  const e = pose.shyE || 0;
+  if (e < 0.01) return;
+  // 腮红: 两侧软边粉色
+  for (const [bx, by] of [[186, 289], [349, 286]]) {
+    const g = octx.createRadialGradient(bx, by, 2, bx, by, 24);
+    g.addColorStop(0, `rgba(244,130,120,${0.5 * e})`);
+    g.addColorStop(1, 'rgba(244,130,120,0)');
+    octx.fillStyle = g;
+    octx.beginPath();
+    octx.ellipse(bx, by, 26, 16, 0, 0, Math.PI * 2);
+    octx.fill();
+  }
+  // 闭眼弧(∩): 画在闭合眼睑之上, 与睫毛同色
+  octx.strokeStyle = col(LASH, 0.95 * e);
+  octx.lineWidth = 4.6;
+  octx.lineCap = 'round';
+  for (const [ax0, ax1, ay] of [[176, 230, 246], [296, 352, 244]]) {
+    octx.beginPath();
+    octx.moveTo(ax0, ay + 6);
+    octx.quadraticCurveTo((ax0 + ax1) / 2, ay - 9, ax1, ay + 6);
+    octx.stroke();
+  }
 }
 
 // 离屏合成：先按素材原分辨率把所有图层拼好，再一次性缩放到主画布。
@@ -374,10 +387,10 @@ function render(pose) {
     drawEyelid('L');
     drawEyelid('R');
     drawFace(pose);
-    drawShy(pose);
-    // 害羞时纸偶自己的手淡出(视频手臂在贴片里), 平时原位补回挖孔
-    drawPart('handL', 0, 0, 1 - (pose.shyE || 0));
-    drawPart('handR', 0, 0, 1 - (pose.shyE || 0));
+    drawShyFace(pose);
+    // 害羞时前臂抬起捂住嘴/下脸(手心贴脸), 平时原位补回挖孔
+    drawPart('handL', -(pose.handAng || 0), -(pose.handLift || 0), 1);
+    drawPart('handR', (pose.handAng || 0), -(pose.handLift || 0), 1);
   }
 
   // ---- 主画布：整体缩放绘制 ----
@@ -509,7 +522,7 @@ async function runPreview() {
   currentPose = {
     t: 4, breath: 0.3, lean: 0.8, blink: 1, lid: 1,
     earL: -1, earR: 1, droop: 1, tailL: 2, tailR: -2, tailDyL: -2, tailDyR: -2,
-    shyE: 1, shyRot: 1.2, shyDy: 0,
+    shyE: 1, shyRot: 1.2, shyDy: 0, handAng: 135, handLift: 45,
   };
   await wait(120); await pet.capture('shy');
   currentPose = { t: 5, clip: { name: 'happy', i: 18, alpha: 1 } };
