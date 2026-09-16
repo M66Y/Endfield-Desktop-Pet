@@ -130,7 +130,7 @@ white = (lum_i > 215) & (sat_i <= 25)  # 袖口高光
 
 feat = np.zeros((H, W), dtype=bool)
 feat |= face_box & (alpha_w > 127)                                   # 上脸: 全收
-feat |= arm_band & (red | dark | skin | blush | white) & (alpha_w > 127)
+feat |= arm_band & (dark | skin | blush | white) & (alpha_w > 127)  # 红袖不收: 避免黑手套两侧的红翼
 
 # ---------- 3.5 颜色校正: 让害羞图皮肤与底图皮肤同调, 消除接缝 ----------
 # 用额头皮肤间隙配对采样(头发/眉毛/眼线都被亮度滤波排除), 取中位数色差
