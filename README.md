@@ -99,6 +99,17 @@ assets/            零件 PNG + 动作帧序列 + manifest.js（由管线生成�
 加分支；触发方式若想改回鼠标，参考 `renderer.js` 鼠标事件区（右键/单击触发的历史实现）。
 </details>
 
+## Live2D 模式(开发中)
+
+```bash
+npm run live2d        # --live2d 启动 Cubism 渲染路径(当前为官方示例模型 Haru 占位)
+```
+
+- 运行时: pixi-live2d-display + Live2D Cubism Core(`vendor/`,遵循 Live2D SDK 许可);
+  示例模型版权归 Live2D Inc.,仅作链路验证占位。
+- 已验证: 透明窗口、视线跟随鼠标、Q 键轮播表情、鼠标穿透。
+- 正式模型: 由 `tools/` 管线生成分层 PSD → Live2D Cubism Editor 绑骨 → .moc3 替换占位模型。
+
 ## 许可
 
 [MIT](LICENSE) —— 洁尔佩塔角色设定归《明日方舟：终末地》官方所有，项目内立绘为 AI

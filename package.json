@@ -6,11 +6,16 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "preview": "electron . --preview"
+    "preview": "electron . --preview",
+    "live2d": "electron . --live2d"
   },
   "author": "ZCode",
   "license": "MIT",
   "devDependencies": {
     "electron": "^33.2.0"
+  },
+  "dependencies": {
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "^6.5.10"
   }
 }

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self' app://live2d; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; connect-src 'self' app://live2d; style-src 'unsafe-inline'">
+<title>洁尔佩塔 · Live2D</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+</style>
+</head>
+<body>
+<canvas id="app"></canvas>
+<script src="../vendor/live2dcubismcore.min.js"></script>
+<script src="../node_modules/pixi.js/dist/browser/pixi.min.js"></script>
+<script src="../node_modules/pixi-live2d-display/dist/cubism4.min.js"></script>
+<script src="./live2d-renderer.js"></script>
+</body>
+</html>

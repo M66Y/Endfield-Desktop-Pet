@@ -1,10 +1,16 @@
 // 洁尔佩塔桌宠 - 主进程：透明置顶窗口 / 托盘 / 鼠标穿透 / 位置记忆 / 全局 Q 热键
-const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, globalShortcut } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, globalShortcut, protocol, net } = require('electron');
+
 const path = require('path');
 const fs = require('fs');
 
 const SIZE = { 1: 256, 2: 512 };
 const PREVIEW = process.argv.includes('--preview');
+const LIVE2D = process.argv.includes('--live2d'); // Live2D 渲染模式(cfg.renderer 偏好在 createWindow 时再读)
+function winSize() {
+  const live2d = LIVE2D || cfg.renderer === 'live2d';
+  return live2d ? 512 : (SIZE[cfg.zoom] || 256);
+}
 
 let win = null;
 let tray = null;
@@ -61,13 +67,13 @@ function trayIcon() {
 // 双保险：1) 最小/最大尺寸锁死为期望值；2) 每次移动后检测尺寸，偏了立即写回。
 function lockSize() {
   if (!win) return;
-  const s = SIZE[cfg.zoom] || 256;
+  const s = winSize();
   win.setMinimumSize(s, s);
   win.setMaximumSize(s, s);
 }
 
 function createWindow() {
-  const s = SIZE[cfg.zoom] || 256;
+  const s = winSize();
   const wa = screen.getPrimaryDisplay().workArea;
   let x = cfg.x, y = cfg.y;
   if (x == null || y == null) {
@@ -92,11 +98,18 @@ function createWindow() {
   });
   win.setAlwaysOnTop(!!cfg.onTop, 'screen-saver');
   lockSize();
-  win.loadFile(path.join(__dirname, 'src', 'index.html'), PREVIEW ? { query: { preview: '1' } } : undefined);
+  win.loadFile(
+    path.join(__dirname, 'src', LIVE2D ? 'live2d.html' : 'index.html'),
+    PREVIEW ? { query: { preview: '1' } } : undefined,
+  );
   win.once('ready-to-show', () => {
     win.show();
     win.setIgnoreMouseEvents(true, { forward: true }); // 初始穿透，命中角色后收回
   });
+  win.webContents.on('render-process-gone', (e, details) => {
+    console.error('[render-gone]', details.reason, details.exitCode);
+  });
+  win.webContents.on('unresponsive', () => console.error('[renderer unresponsive]'));
   win.on('closed', () => { win = null; });
 }
 
@@ -176,8 +189,28 @@ ipcMain.handle('pet:capture', async (e, name) => {
 });
 ipcMain.on('pet:done', () => { saveCfg(); app.quit(); });
 
+// ---------- app:// 协议: 让渲染进程能用 XHR 加载本地模型资源(file:// 会被 CORS 拦截) ----------
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true, corsEnabled: true } },
+]);
+
 // ---------- 生命周期 ----------
 app.whenReady().then(() => {
+  const MIME = { '.json': 'application/json', '.png': 'image/png', '.moc3': 'application/octet-stream', '.webp': 'image/webp' };
+  protocol.handle('app', (req) => {
+    const u = new URL(req.url);
+    if (u.host !== 'live2d') return new Response('not found', { status: 404 });
+    const rel = decodeURIComponent(u.pathname).replace(/^\/+/, '');
+    const file = path.join(__dirname, 'assets', 'live2d', rel);
+    try {
+      const data = fs.readFileSync(file);
+      const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
+      return new Response(data, { headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': type } });
+    } catch (err) {
+      console.error('[app-protocol] miss:', file, err.message);
+      return new Response('not found', { status: 404 });
+    }
+  });
   loadCfg();
   app.setAppUserModelId('com.endfield.gilberta.pet');
   createWindow();
