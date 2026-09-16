@@ -1,0 +1,16 @@
+{
+  "name": "gilberta-desktop-pet",
+  "productName": "洁尔佩塔桌宠",
+  "version": "1.0.0",
+  "description": "《明日方舟：终末地》洁尔佩塔 Q版桌面宠物（Electron + Canvas 矢量实时渲染）",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "preview": "electron . --preview"
+  },
+  "author": "ZCode",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.0"
+  }
+}
