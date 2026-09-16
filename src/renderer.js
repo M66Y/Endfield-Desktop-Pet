@@ -1,4 +1,4 @@
-// 洁尔佩塔桌宠 —— 原图分层纸偶渲染 / 状态机（idle / click / drag）/ 鼠标交互
+// 洁尔佩塔桌宠 —— 原图分层纸偶渲染 / 状态机（idle / click / drag / shy）/ 键盘 Q 交替触发动作
 // 所有动画都在“素材像素坐标系”里进行，零件来自 tools/process.py 的抠图产物
 const canvas = document.getElementById('pet');
 const ctx = canvas.getContext('2d');
@@ -48,35 +48,52 @@ const ease = (t) => { t = clamp01(t); return t * t * (3 - 2 * t); };
 // ---------- 动画状态 ----------
 const CLICK_DUR = 1.05;
 const KICK_ANG = 10;   // 踢腿角度（小踢腿，配合起跳）
+const SHY = { raise: 0.32, hold: 2.3, fall: 0.45 }; // 害羞捂脸三段时长
 const A = {
   t: 0, state: 'idle',
   blink: { next: rnd(1.5, 4), t: -1 },
   ear: { L: { next: rnd(2, 6), t: -1 }, R: { next: rnd(3, 7), t: -1 } },
   act: { type: 'none', t: 0, dur: 0, next: rnd(5, 9), dir: 1 },
   click: { t: 1e9, leg: 1 },
+  shy: { t: 1e9 },
   press: false, drag: false,
   vx: 0, vy: 0, lean: 0, leanV: 0,
   tailPhase: 0,
   downSX: 0, downSY: 0, downT: 0, lastSX: 0, lastSY: 0, lastMoveT: 0,
 };
 
-function startClick() {
-  A.state = 'click';
+function startKick() {
+  A.state = 'kick';
   A.click.t = 0;
+  A.shy.t = 1e9; // 踢腿会打断害羞
   A.click.leg *= -1;
   A.ear.L.t = 0; A.ear.L.next = A.t + rnd(3.5, 9);
   A.ear.R.t = 0.12; A.ear.R.next = A.t + rnd(3.5, 9);
 }
 
+function startShy() {
+  A.shy.t = 0;
+  A.act.next = A.t + SHY.raise + SHY.hold + SHY.fall + rnd(9, 16);
+}
+
+// ---------- 键盘 Q：交替触发两个动作（主进程全局热键转发） ----------
+let hotkeyNext = 0; // 0: 踢腿, 1: 害羞捂脸
+function playNextAction() {
+  if (hotkeyNext === 0) { startKick(); hotkeyNext = 1; }
+  else { startShy(); hotkeyNext = 0; }
+}
+if (window.pet.onAction) window.pet.onAction(playNextAction);
+
 function update(dt) {
   A.t += dt;
-  const clickActive = A.state === 'click';
+  const kickActive = A.state === 'kick';
   const dragging = A.drag;
 
-  // 尾巴摆动（点击/小动作时加快）
+  // 尾巴摆动（点击/小动作/害羞时加快）
   let wag = 1;
-  if (clickActive) wag = 2.6;
-  if (A.act.type === 'wag' && !clickActive && !dragging) wag = 2.6;
+  if (kickActive) wag = 2.6;
+  if (A.act.type === 'wag' && !kickActive && !dragging) wag = 2.6;
+  if (A.shy.t < 1e9) wag = 2.1;
   A.tailPhase += dt * (Math.PI * 2 / 3.2) * wag;
 
   // 眨眼
@@ -94,15 +111,19 @@ function update(dt) {
   }
   const earAng = (e) => e.t >= 0 ? Math.sin((e.t / 0.4) * Math.PI * 2) * 2.2 : 0;
 
-  // 待机小动作
+  // 待机小动作（偶尔害羞捂脸一次）
   const act = A.act;
-  if (A.state === 'idle' && !A.press && !dragging && A.t > act.next) {
-    const types = ['tilt', 'wag', 'perk'];
-    act.type = types[(Math.random() * types.length) | 0];
-    act.dur = act.type === 'tilt' ? 2.4 : 1.5;
-    act.dir = Math.random() < 0.5 ? -1 : 1;
-    act.t = 0;
-    act.next = A.t + act.dur + rnd(6, 13);
+  if (A.state === 'idle' && !A.press && !dragging && A.t > act.next && A.shy.t >= 1e9) {
+    if (Math.random() < 0.16) {
+      startShy();
+    } else {
+      const types = ['tilt', 'wag', 'perk'];
+      act.type = types[(Math.random() * types.length) | 0];
+      act.dur = act.type === 'tilt' ? 2.4 : 1.5;
+      act.dir = Math.random() < 0.5 ? -1 : 1;
+      act.t = 0;
+      act.next = A.t + act.dur + rnd(6, 13);
+    }
   }
   let actLean = 0, actPerk = 0;
   if (act.type !== 'none') {
@@ -115,16 +136,15 @@ function update(dt) {
     }
   }
 
-  // 点击动画：坏笑 + 踢腿
-  let smug = 0, kick = 0, hop = 0, clickLean = 0;
-  if (clickActive) {
+  // 踢腿动画：小跳 + 交替踢腿（不做表情替换）
+  let kick = 0, hop = 0, clickLean = 0;
+  if (kickActive) {
     A.click.t += dt;
     const ct = A.click.t;
     if (ct >= CLICK_DUR) { A.state = 'idle'; A.click.t = 1e9; }
     else {
       const sIn = ease(ct / 0.16);
       const sOut = ease((ct - 0.72) / 0.33);
-      smug = sIn * (1 - sOut);
       kick = Math.sin(Math.PI * clamp01((ct - 0.08) / 0.55));
       hop = kick * 4;
       clickLean = kick * 2.2 * A.click.leg;
@@ -140,6 +160,26 @@ function update(dt) {
     A.lean += A.leanV * dt;
   }
 
+  // 害羞捂脸：抬起(淡入+摆正) -> 捂脸揉动 -> 放下
+  let shyE = 0, shyRot = 0, shyDy = 0, droop = 0, shyLean = 0;
+  if (A.shy.t < 1e9 && !dragging) {
+    A.shy.t += dt;
+    const st = A.shy.t;
+    const TOT = SHY.raise + SHY.hold + SHY.fall;
+    if (st >= TOT) A.shy.t = 1e9;
+    else {
+      const r = ease(st / SHY.raise);
+      const f = ease((st - SHY.raise - SHY.hold) / SHY.fall);
+      shyE = Math.min(r, 1 - f);
+      shyRot = (1 - r) * -5 + shyE * Math.sin(st * Math.PI * 2 * 0.8) * 1.4;
+      shyDy = (1 - shyE) * 14;
+      shyLean = shyE * Math.sin(st * Math.PI * 2 * 0.45) * 1.1;
+      droop = shyE;
+    }
+  } else {
+    A.shy.t = 1e9;
+  }
+
   const breath = Math.sin(A.t * Math.PI * 2 / 3.4);
   const blinkP = B.t >= 0 ? Math.sin(Math.PI * clamp01(B.t / 0.15)) : 0;
   const idleSway = Math.sin(A.t * 0.9) * 0.8;
@@ -147,18 +187,20 @@ function update(dt) {
   const pose = {
     t: A.t,
     breath,
-    lean: A.lean + idleSway + actLean + clickLean,
+    lean: A.lean + idleSway + actLean + clickLean + shyLean,
     hop: -hop,
-    blink: blinkP,
+    blink: Math.max(blinkP, shyE * 1.4),
+    lid: shyE,
     squint: 0,
-    face: (M.faces && (clickActive ? M.faces.smug : dragging ? M.faces.happy : null)) || null,
+    face: shyE > 0.3 ? null : ((M.faces && (dragging ? M.faces.happy : null)) || null),
     kick, kickSide: A.click.leg,
-    earL: earAng(A.ear.L), earR: -earAng(A.ear.R), perk: actPerk,
+    earL: earAng(A.ear.L), earR: -earAng(A.ear.R), perk: actPerk, droop,
     tailL: Math.sin(A.tailPhase) * 1.2,
     tailR: Math.sin(A.tailPhase + 0.9) * 1.2,
     tailDyL: Math.sin(A.tailPhase * 1.3) * 1.8,
     tailDyR: Math.sin(A.tailPhase * 1.3 + 0.8) * 1.8,
-    wagging: clickActive || (A.act.type === 'wag'),
+    wagging: kickActive || (A.act.type === 'wag'),
+    shyE, shyRot, shyDy,
   };
   return pose;
 }
@@ -169,9 +211,10 @@ function drawPart(name, ang, dy = 0) {
   if (!ang && !dy) { octx.drawImage(imgs[name], sp.ox, sp.oy); return; }
   const px = sp.ox + sp.pivot[0], py = sp.oy + sp.pivot[1];
   octx.save();
-  octx.translate(px, py + dy);
+  octx.translate(0, dy);
+  octx.translate(px, py);
   octx.rotate(ang * RAD);
-  octx.translate(-px, -py - dy);
+  octx.translate(-px, -py);
   octx.drawImage(imgs[name], sp.ox, sp.oy);
   octx.restore();
 }
@@ -180,8 +223,9 @@ function drawEyelid(side) {
   const r = M.eyes[side].rect;
   const x0 = r[0] - 3, y0 = r[1] - 4, w = r[2] - r[0] + 6, h = r[3] - r[1] + 8;
   const o = currentPose;
-  const coverA = clamp01(o.blink) * 0.92;
-  const cov = Math.min(0.92, coverA) * h;
+  const cap = 0.92 + 0.08 * (o.lid || 0); // 捂脸时完全闭合
+  const coverA = clamp01(o.blink) * cap;
+  const cov = Math.min(1, coverA) * h;
   if (cov < 2) return;
   const skin = SKIN[side];
   octx.save();
@@ -215,6 +259,21 @@ function drawFace(pose) {
   octx.drawImage(faceImgs[pose.face], f.x, f.y);
 }
 
+// 害羞捂脸贴片（闭眼+脸红+双手），画在脸部特征之上
+function drawShy(pose) {
+  if (!pose.shyE || pose.shyE < 0.01 || !imgs.shy || !imgs.shy.complete) return;
+  const sp = M.sprites.shy;
+  const px = sp.ox + sp.pivot[0], py = sp.oy + sp.pivot[1];
+  octx.save();
+  octx.globalAlpha = Math.min(1, pose.shyE * 1.2);
+  octx.translate(0, pose.shyDy || 0);
+  octx.translate(px, py);
+  octx.rotate((pose.shyRot || 0) * RAD);
+  octx.translate(-px, -py);
+  octx.drawImage(imgs.shy, sp.ox, sp.oy);
+  octx.restore();
+}
+
 // 离屏合成：先按素材原分辨率把所有图层拼好，再一次性缩放到主画布。
 // 直接分层画到主画布会因逐层缩放/旋转的边缘透明化在图层交界处漏出桌面（白色细缝）。
 const off = document.createElement('canvas');
@@ -237,11 +296,12 @@ function render(pose) {
   drawPart('base', 0);
   drawPart('legL', pose.kickSide < 0 ? pose.kick * KICK_ANG : 0);
   drawPart('legR', pose.kickSide > 0 ? -pose.kick * KICK_ANG : 0);
-  drawPart('earL', pose.earL - (pose.perk || 0) * 2);
-  drawPart('earR', pose.earR + (pose.perk || 0) * 2);
+  drawPart('earL', pose.earL - (pose.perk || 0) * 2 - (pose.droop || 0) * 2.6);
+  drawPart('earR', pose.earR + (pose.perk || 0) * 2 + (pose.droop || 0) * 2.6);
   drawEyelid('L');
   drawEyelid('R');
   drawFace(pose);
+  drawShy(pose);
 
   // ---- 主画布：整体缩放绘制 ----
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -306,7 +366,7 @@ canvas.addEventListener('mousemove', (e) => {
   if (A.press) {
     if (!A.drag) {
       const dxT = e.screenX - A.downSX, dyT = e.screenY - A.downSY;
-      if (dxT * dxT + dyT * dyT > 49) { A.drag = true; A.state = 'drag'; }
+      if (dxT * dxT + dyT * dyT > 49) { A.drag = true; A.state = 'drag'; A.shy.t = 1e9; }
     }
     if (A.drag) {
       const now = performance.now();
@@ -334,6 +394,8 @@ canvas.addEventListener('mousedown', (e) => {
   setIgnore(false);
 });
 
+addEventListener('contextmenu', (e) => e.preventDefault());
+
 addEventListener('mouseup', (e) => {
   if (!A.press) return;
   A.press = false;
@@ -343,8 +405,6 @@ addEventListener('mouseup', (e) => {
     A.vx = A.vy = 0;
     const p = toLogical(e.clientX, e.clientY);
     setIgnore(!hitTest(p.x, p.y));
-  } else if (performance.now() - A.downT < 600) {
-    startClick();
   }
 });
 
@@ -369,19 +429,33 @@ async function runPreview() {
     kick: 0, tailL: -3, tailR: -3, tailDyL: -2, tailDyR: -2,
   };
   await wait(120); await pet.capture('drag');
-  // 动画 GIF：12fps，先 2.5 秒待机，再完整一次点击动画
+  currentPose = {
+    t: 4, breath: 0.3, lean: 0.8, blink: 1, lid: 1,
+    earL: -1, earR: 1, droop: 1, tailL: 2, tailR: -2, tailDyL: -2, tailDyR: -2,
+    shyE: 1, shyRot: 1.2, shyDy: 0,
+  };
+  await wait(120); await pet.capture('shy');
+  // 动画 GIF：12fps，先 2.5 秒待机，再完整一次点击动画 + 一次害羞捂脸
   const STEP = 1 / 12;
   const nextFrame = () => new Promise((r) => requestAnimationFrame(r));
   const pad = (n) => String(n).padStart(2, '0');
   A.t = 10; // 让待机小动作计时器就绪
-  for (let i = 0; i < 30; i++) {
+  A.act.next = A.t + 200; // 预览待机段不触发小动作/害羞，保证 GIF 干净
+  let n = 0;
+  for (let i = 0; i < 30; i++, n++) {
     currentPose = update(STEP);
-    await nextFrame(); await pet.capture('gif_' + pad(i));
+    await nextFrame(); await pet.capture('gif_' + pad(n));
   }
-  startClick();
-  for (let i = 30; i < 46; i++) {
+  startKick();
+  for (let i = 30; i < 46; i++, n++) {
     currentPose = update(STEP);
-    await nextFrame(); await pet.capture('gif_' + pad(i));
+    await nextFrame(); await pet.capture('gif_' + pad(n));
+  }
+  startShy();
+  const shyFrames = Math.ceil((SHY.raise + SHY.hold + SHY.fall) / STEP);
+  for (let i = 0; i < shyFrames; i++, n++) {
+    currentPose = update(STEP);
+    await nextFrame(); await pet.capture('gif_' + pad(n));
   }
   pet.done();
 }

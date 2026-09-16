@@ -1,5 +1,5 @@
-// 洁尔佩塔桌宠 - 主进程：透明置顶窗口 / 托盘 / 鼠标穿透 / 位置记忆
-const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage } = require('electron');
+// 洁尔佩塔桌宠 - 主进程：透明置顶窗口 / 托盘 / 鼠标穿透 / 位置记忆 / 全局 Q 热键
+const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -8,7 +8,7 @@ const PREVIEW = process.argv.includes('--preview');
 
 let win = null;
 let tray = null;
-let cfg = { zoom: 1, onTop: true, x: null, y: null };
+let cfg = { zoom: 1, onTop: true, qKey: true, x: null, y: null };
 
 const cfgFile = () => path.join(app.getPath('userData'), 'pet-config.json');
 function loadCfg() {
@@ -100,6 +100,18 @@ function createWindow() {
   win.on('closed', () => { win = null; });
 }
 
+// ---------- 全局 Q 热键 ----------
+// 桌宠窗口透明穿透、永远没有键盘焦点，动作触发键必须在主进程用全局热键捕获。
+// 注意：裸字母 Q 是系统级热键，桌宠运行期间在任何应用里按 Q 都会被拦截转发给桌宠。
+function registerHotkey() {
+  globalShortcut.unregister('Q');
+  if (PREVIEW || !cfg.qKey || !win) return;
+  const ok = globalShortcut.register('Q', () => {
+    if (win) win.webContents.send('pet:hotkey', 'q');
+  });
+  if (!ok) console.warn('全局热键 Q 注册失败（可能被其他应用占用）');
+}
+
 // ---------- 托盘 ----------
 function createTray() {
   if (PREVIEW) return;
@@ -116,6 +128,10 @@ function buildMenu() {
     {
       label: '窗口置顶', type: 'checkbox', checked: !!cfg.onTop,
       click: (mi) => { cfg.onTop = mi.checked; if (win) win.setAlwaysOnTop(!!cfg.onTop, 'screen-saver'); saveCfg(); },
+    },
+    {
+      label: '键盘 Q 切换表情（全局）', type: 'checkbox', checked: cfg.qKey !== false,
+      click: (mi) => { cfg.qKey = mi.checked; saveCfg(); registerHotkey(); },
     },
     { type: 'separator' },
     { label: '退出', click: () => { saveCfg(); app.quit(); } },
@@ -166,7 +182,9 @@ app.whenReady().then(() => {
   app.setAppUserModelId('com.endfield.gilberta.pet');
   createWindow();
   createTray();
+  registerHotkey();
   setInterval(saveCfg, 5000); // 周期性保存位置
   if (process.env.PET_SMOKE) setTimeout(() => app.quit(), 6000); // 冒烟测试：自动退出
 });
+app.on('will-quit', () => globalShortcut.unregisterAll());
 app.on('window-all-closed', () => { saveCfg(); app.quit(); });

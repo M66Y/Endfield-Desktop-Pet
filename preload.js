@@ -7,4 +7,5 @@ contextBridge.exposeInMainWorld('pet', {
   moveBy: (dx, dy) => ipcRenderer.send('pet:moveBy', dx, dy),
   capture: (name) => ipcRenderer.invoke('pet:capture', name),
   done: () => ipcRenderer.send('pet:done'),
+  onAction: (cb) => ipcRenderer.on('pet:hotkey', () => cb()),
 });
