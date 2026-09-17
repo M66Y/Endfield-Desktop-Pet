@@ -63,7 +63,7 @@ const ease = (t) => { t = clamp01(t); return t * t * (3 - 2 * t); };
 // ---------- 动画状态 ----------
 const CLICK_DUR = 1.05;
 const KICK_ANG = 10;   // 踢腿角度（小踢腿，配合起跳）
-const SHY = { wind: 0.2, raise: 0.34, hold: 2.3, fall: 0.5 }; // 预备吸气+抬手+捂脸+放下
+const SHY = { wind: 0.2, raise: 0.34, hold: 2.3, fall: 0.5 }; // 预备吸气+表情浮现+恢复
 const CLIP = { fin: 0.15, fout: 0.25 };             // 帧序列动作淡入/淡出
 const A = {
   t: 0, state: 'idle',
@@ -103,7 +103,7 @@ function startHappy() {
 }
 
 // ---------- 键盘 Q：交替触发三个动作（主进程全局热键转发） ----------
-let hotkeyNext = 0; // 0: 踢腿, 1: 害羞捂脸, 2: 开心
+let hotkeyNext = 0; // 0: 踢腿, 1: 害羞, 2: 开心
 function playNextAction() {
   if (hotkeyNext === 0) { startKick(); hotkeyNext = 1; }
   else if (hotkeyNext === 1) { startShy(); hotkeyNext = 2; }
@@ -138,7 +138,7 @@ function update(dt) {
   }
   const earAng = (e) => e.t >= 0 ? Math.sin((e.t / 0.4) * Math.PI * 2) * 2.2 : 0;
 
-  // 待机小动作（偶尔害羞捂脸一次）
+  // 待机小动作（偶尔害羞一次）
   const act = A.act;
   if (A.state === 'idle' && !A.press && !dragging && A.t > act.next && A.shy.t >= 1e9) {
     if (Math.random() < 0.16) {
@@ -187,9 +187,9 @@ function update(dt) {
     A.lean += A.leanV * dt;
   }
 
-  // 掩面害羞: 预备吸气(下压后仰) -> 抬手抵住下颌(发力颤抖) -> 放下
-  let shyE = 0, droop = 0, shyLean = 0, handAng = 0, handLift = 0;
-  let windP = 0, shyJx = 0, shyJy = 0, shyTailAmp = 1.2, shyTailDy = 1.8, earShy = 0;
+  // 害羞: 预备吸气(纸偶) -> 整身参考图姿势(合手+害羞表情, 单帧 clip)淡入 -> 保持 -> 淡出
+  let shyE = 0, shyLean = 0, shyClip = null;
+  let windP = 0;
   if (A.shy.t < 1e9 && !dragging) {
     A.shy.t += dt;
     const st = A.shy.t;
@@ -202,15 +202,8 @@ function update(dt) {
       const r = ease(st2 / SHY.raise);
       const f = ease((st2 - SHY.raise - SHY.hold) / SHY.fall);
       shyE = Math.min(r, 1 - f);
-      shyLean = -2.1 * shyE + shyE * Math.sin(st2 * Math.PI * 2 * 0.45) * 1.1;  // 头部微后仰+轻摇
-      handAng = 138 * shyE + shyE * Math.sin(st2 * Math.PI * 2 * 0.8) * 2;      // 双手抵住下颌
-      handLift = 54 * shyE;
-      droop = shyE;
-      earShy = shyE * 1.2;                              // 狐耳向外绷紧
-      shyTailAmp = 1.2 + shyE * 2.2;                    // 双马尾跟随摆动
-      shyTailDy = 1.8 + shyE * 2.4;
-      shyJx = Math.sin(st2 * 68) * 1.1 * shyE;          // 发力颤抖(次要动作)
-      shyJy = Math.cos(st2 * 57) * 0.7 * shyE;
+      shyLean = -1.6 * shyE + shyE * Math.sin(st2 * Math.PI * 2 * 0.35) * 0.7;  // 缓慢后仰+轻摇(不做高频颤抖)
+      if (M.clips.shy) shyClip = { name: 'shy', i: 0, alpha: shyE };
     }
   } else {
     A.shy.t = 1e9;
@@ -243,19 +236,16 @@ function update(dt) {
     breath,
     lean: A.lean + idleSway + actLean + clickLean + shyLean,
     hop: -hop - windP * 4,
-    blink: Math.max(blinkP, shyE * 1.4),
-    lid: shyE,
-    squint: 0,
-    face: shyE > 0.3 ? null : ((M.faces && (dragging ? M.faces.happy : null)) || null),
+    blink: blinkP,
     kick, kickSide: A.click.leg,
-    earL: earAng(A.ear.L), earR: -earAng(A.ear.R), perk: actPerk, droop,
-    tailL: Math.sin(A.tailPhase) * shyTailAmp,
-    tailR: Math.sin(A.tailPhase + 0.9) * shyTailAmp,
-    tailDyL: Math.sin(A.tailPhase * 1.3) * shyTailDy,
-    tailDyR: Math.sin(A.tailPhase * 1.3 + 0.8) * shyTailDy,
+    earL: earAng(A.ear.L), earR: -earAng(A.ear.R), perk: actPerk,
+    tailL: Math.sin(A.tailPhase) * 1.2,
+    tailR: Math.sin(A.tailPhase + 0.9) * 1.2,
+    tailDyL: Math.sin(A.tailPhase * 1.3) * 1.8,
+    tailDyR: Math.sin(A.tailPhase * 1.3 + 0.8) * 1.8,
     wagging: kickActive || (A.act.type === 'wag'),
-    shyE, handAng, handLift, windP, shyJx, shyJy, earShy,
-    clip: clipPose,
+    shyE, windP,
+    clip: clipPose || shyClip,
   };
   return pose;
 }
@@ -286,7 +276,7 @@ function drawEyelid(side) {
   const cx = (r[0] + r[2]) / 2, cy = (r[1] + r[3]) / 2;
   const rx = (r[2] - r[0]) / 2 + 3, ry = (r[3] - r[1]) / 2 + 4;
   const o = currentPose;
-  const cap = 0.92 + 0.08 * (o.lid || 0); // 捂脸时完全闭合
+  const cap = 0.92 + 0.08 * (o.lid || 0);
   const amt = clamp01(o.blink) * cap;
   if (amt < 0.04) return;
   const yTop = cy - ry, yClose = yTop + amt * ry * 2;
@@ -303,7 +293,7 @@ function drawEyelid(side) {
   octx.filter = 'none';
   octx.fill();
   // 接近闭合时画弧形睫毛线(闭眼线)
-  if (amt > 0.45 && !(o.lid > 0.3)) { // 捂脸时贴片自带闭眼线, 不重复画
+  if (amt > 0.45) {
     const la = clamp01((amt - 0.45) / 0.4);
     octx.beginPath();
     octx.moveTo(cx - rx + 3, yClose - 3);
@@ -331,32 +321,6 @@ function drawFace(pose) {
   octx.drawImage(faceImgs[pose.face], f.x, f.y);
 }
 
-// 害羞表情: 闭眼弧 + 腮红, 全部画布绘制(与纸偶同风格, 不贴外部图)
-function drawShyFace(pose) {
-  const e = pose.shyE || 0;
-  if (e < 0.01) return;
-  const shade = 0.88 + 0.12 * (pose.breath || 0);   // 跟随呼吸明暗, 贴合纸偶光影
-  // 腮红: 充血集中在眼尾/颧骨上方, 随表情向上收
-  for (const [bx, by] of [[181, 262], [352, 260]]) {
-    const g = octx.createRadialGradient(bx, by, 2, bx, by, 24);
-    g.addColorStop(0, `rgba(240,118,108,${0.55 * e * shade})`);
-    g.addColorStop(1, 'rgba(240,118,108,0)');
-    octx.fillStyle = g;
-    octx.beginPath();
-    octx.ellipse(bx, by, 27, 15, 0, 0, Math.PI * 2);
-    octx.fill();
-  }
-  // 闭眼弧(∩): 左右完全对称, 画在闭合眼睑之上
-  octx.strokeStyle = col(LASH, 0.95 * e);
-  octx.lineWidth = 4.6;
-  octx.lineCap = 'round';
-  for (const [ax0, ax1, ay] of [[174, 230, 245], [296, 352, 245]]) {
-    octx.beginPath();
-    octx.moveTo(ax0, ay + 6);
-    octx.quadraticCurveTo((ax0 + ax1) / 2, ay - 9, ax1, ay + 6);
-    octx.stroke();
-  }
-}
 
 
 // 离屏合成：先按素材原分辨率把所有图层拼好，再一次性缩放到主画布。
@@ -370,10 +334,18 @@ function render(pose) {
   octx.setTransform(1, 0, 0, 1, 0, 0);
   octx.clearRect(0, 0, off.width, off.height);
   if (pose.clip) {
-    // 帧序列动作：整只角色替换为视频帧, 不与纸偶混排
+    // 帧序列/整身姿势: 整只角色替换为图片帧, 不与纸偶混排
     const C = M.clips[pose.clip.name];
     const im = clipImgs[pose.clip.name] && clipImgs[pose.clip.name][pose.clip.i];
     if (im && im.complete && im.naturalWidth > 0) {
+      if (pose.clip.name === 'shy') {
+        // 害羞整身姿势: 与纸偶同脚底锚点, 叠加呼吸/后仰轻摇/扭捏轻颤
+        octx.translate(FEET_AX, FEET_AY);
+        octx.rotate((pose.lean || 0) * RAD);
+        octx.scale(1 - (pose.breath || 0) * 0.007, 1 + (pose.breath || 0) * 0.011);
+        octx.translate(pose.hop || 0, 0);
+        octx.translate(-FEET_AX, -FEET_AY);
+      }
       octx.globalAlpha = pose.clip.alpha;
       octx.drawImage(im, C.ox, C.oy);
       octx.globalAlpha = 1;
@@ -385,36 +357,26 @@ function render(pose) {
     octx.scale(1 - breath * 0.007, 1 + breath * 0.011);
     octx.translate(pose.hop || 0, 0);
     octx.translate(-FEET_AX, -FEET_AY);
-    octx.translate(pose.shyJx || 0, pose.shyJy || 0);   // 发力颤抖(次要动作)
 
     drawPart('tailL', pose.tailL, pose.tailDyL);
     drawPart('tailR', pose.tailR, pose.tailDyR);
     drawPart('base', 0);
     drawPart('legL', pose.kickSide < 0 ? pose.kick * KICK_ANG : 0);
     drawPart('legR', pose.kickSide > 0 ? -pose.kick * KICK_ANG : 0);
-    drawPart('earL', pose.earL - (pose.perk || 0) * 2 - (pose.droop || 0) * 2.6 - (pose.earShy || 0) * 1.6);
-    drawPart('earR', pose.earR + (pose.perk || 0) * 2 + (pose.droop || 0) * 2.6 + (pose.earShy || 0) * 1.6);
+    drawPart('earL', pose.earL - (pose.perk || 0) * 2);
+    drawPart('earR', pose.earR + (pose.perk || 0) * 2);
     drawEyelid('L');
     drawEyelid('R');
     drawFace(pose);
-    drawShyFace(pose);
-    // 害羞时前臂抬起, 双手(镜像对称)抵住下颌两侧; 平时原位补回挖孔
-    drawPart('handL', -(pose.handAng || 0), -(pose.handLift || 0), 1);
-    drawPart('handL', -(pose.handAng || 0), -(pose.handLift || 0), 1, true);
-    drawPart('handR', 0, 0, 1 - (pose.shyE || 0));
+    // 害羞只换表情贴片, 双手保持原位(画回挖孔, 与待机一致)
+    drawPart('handL', 0, 0, 1);
+    drawPart('handL', 0, 0, 1, true);
+    drawPart('handR', 0, 0, 1);
   }
 
   // ---- 主画布：整体缩放绘制 ----
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (PREVIEW) {
-    const s = Math.max(8, 16 * scale);
-    for (let y = 0; y < canvas.height; y += s)
-      for (let x = 0; x < canvas.width; x += s) {
-        ctx.fillStyle = ((((x / s) | 0) + ((y / s) | 0)) % 2) ? '#e2e2e2' : '#f4f4f4';
-        ctx.fillRect(x, y, s, s);
-      }
-  }
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(off, OFF_X, OFF_Y, M.canvas.w * F, M.canvas.h * F);
@@ -530,15 +492,11 @@ async function runPreview() {
     kick: 0, tailL: -3, tailR: -3, tailDyL: -2, tailDyR: -2,
   };
   await wait(120); await pet.capture('drag');
-  currentPose = {
-    t: 4, breath: 0.3, lean: 0.8, blink: 1, lid: 1,
-    earL: -1, earR: 1, droop: 1, tailL: 2, tailR: -2, tailDyL: -2, tailDyR: -2,
-    shyE: 1, handAng: 132, handLift: 62, windP: 0, shyJx: 0, shyJy: 0, earShy: 1.2,
-  };
+  currentPose = { t: 4, breath: 0.3, lean: 0.8, shyE: 1, windP: 0, clip: { name: 'shy', i: 0, alpha: 1 } };
   await wait(120); await pet.capture('shy');
   currentPose = { t: 5, clip: { name: 'happy', i: 18, alpha: 1 } };
   await wait(120); await pet.capture('happy');
-  // 动画 GIF：12fps，待机 + 踢腿 + 害羞捂脸 + 开心片段
+  // 动画 GIF：12fps，待机 + 踢腿 + 害羞 + 开心片段
   const STEP = 1 / 12;
   const nextFrame = () => new Promise((r) => requestAnimationFrame(r));
   const pad = (n) => String(n).padStart(2, '0');

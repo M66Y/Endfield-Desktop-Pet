@@ -1,21 +1,49 @@
 {
   "name": "gilberta-desktop-pet",
-  "productName": "洁尔佩塔桌宠",
-  "version": "1.0.0",
+  "productName": "Gilberta Desktop",
+  "version": "1.1.0",
   "description": "《明日方舟：终末地》洁尔佩塔 Q版桌面宠物（Electron + Canvas 矢量实时渲染）",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "preview": "electron . --preview",
-    "live2d": "electron . --live2d"
+    "live2d": "electron . --live2d",
+    "dist": "electron-builder --win portable --x64"
   },
-  "author": "ZCode",
+  "author": "M66Y",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^33.2.0"
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
   },
   "dependencies": {
     "pixi-live2d-display": "^0.4.0",
     "pixi.js": "^6.5.10"
+  },
+  "build": {
+    "appId": "com.endfield.gilberta.pet",
+    "productName": "Gilberta Desktop",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "assets/**/*",
+      "vendor/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "Gilberta.Desktop.v1.1.Windows.x64.exe"
+    }
   }
 }

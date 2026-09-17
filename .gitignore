@@ -3,3 +3,4 @@ node_modules/
 preview/
 tools/tmp_happy/
 __pycache__/
+dist/
