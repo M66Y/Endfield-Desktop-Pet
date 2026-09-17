@@ -110,7 +110,7 @@ assets/            零件 PNG + 动作素材 + manifest.js（由管线生成）
 | --- | --- |
 | 基础切片 | `tools/process.py` —— 参考图抠图、去水印、按折线切可动零件 |
 | 害羞整身姿势 | `tools/shy_pose_pack.py` —— 参考图整只角色抠出（去底 + 刘海NCC对齐 + 眉眼暗结构精化 + 脚底锚点配准 + 去白边），单帧 clip 淡入淡出 |
-| 开心帧序列 | `ffmpeg` 抽帧 → `tools/happy_frames.py` 去底 → `tools/happy_pack.py` 打包 → `tools/happy_fix.py` 切灰边并向纸偶配准色调 |
+| 开心帧序列 | `ffmpeg` 抽帧 → `tools/happy_frames.py` 去底 → `tools/happy_pack.py` 打包 → `tools/happy_fix.py` 切灰边并向纸偶配准色调 → `tools/happy_fit.py` 等比适配纸偶比例（高 622 / 脚底 640 / 居中） |
 | 前臂零件 | `tools/arms.py` —— 切出前臂+手套并修补底图挖孔 |
 | 换表情贴片 | `tools/face.py` —— 从同角色不同表情生成图切脸贴回（命名 `happy` 拖拽时自动使用） |
 | 去白边 | `tools/defringe.py` —— 白底抠图边缘残留的白色混合像素逆向清除 |
