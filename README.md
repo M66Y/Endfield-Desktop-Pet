@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="docs/demo.gif" width="256" alt="桌宠演示动画：待机 → 踢腿 → 害羞 → 开心">
+<img src="docs/demo.gif" width="256" alt="桌宠演示动画：待机 → 踢腿 → 害羞 → 开心 → 哭泣">
 
 # Gilberta Desktop · 洁尔佩塔桌宠
 
-**《明日方舟：终末地》洁尔佩塔 Q 版桌面宠物** · v1.1
+**《明日方舟：终末地》洁尔佩塔 Q 版桌面宠物** · v1.2
 
 一只住在屏幕角落的狐耳小姑娘：画面 1:1 取自官方风格立绘（抠图切件、原样拼合），
 会呼吸、眨眼、摇尾巴，偶尔自己害羞一下，按一下 <kbd>Q</kbd> 就给你表演节目。
@@ -18,8 +18,9 @@
 ## ✨ 她会做什么
 
 - **常驻桌面**：透明背景、窗口置顶（可关），桌面其余区域完全鼠标穿透；鼠标移到她身上才能点住
-- **三个小动作**：按 <kbd>Q</kbd> 交替播放「踢腿」「害羞」（完全还原参考图：双手胸前合十、
-  八字眉下垂眼、脸红抿嘴）和「开心」（视频同款原地欢快步，约 6 秒）
+- **四个小动作**：按 <kbd>Q</kbd> 循环播放「踢腿」「害羞」（完全还原参考图：双手胸前合十、
+  八字眉下垂眼、脸红抿嘴）、「开心」（视频同款原地欢快步，约 6 秒）和「哭泣」
+  （嚎啕大哭：`><` 眼角挂泪珠、双手攥拳抵胸，保持期一抽一抽地啜泣）
 - **待机也有戏**：呼吸起伏、随机眨眼、狐尾轻摆、狐耳抖动，偶尔歪头，低概率自己害羞一下
 - **随手拖走**：按住拖到屏幕任意位置，松手还会晃两下才站稳
 - **状态记忆**：位置、大小、置顶、Q 键开关，重启后原样恢复
@@ -30,7 +31,7 @@
 | --- | --- |
 | 应用壳 | [Electron](https://www.electronjs.org/) 33 —— 透明置顶无边框窗口、鼠标穿透、托盘、全局热键 |
 | 渲染 | 原生 **Canvas 2D**「纸偶」实时合成：立绘切片零件（双马尾/狐耳/腿/前臂）在素材像素坐标系里旋转平移，造型与原图完全一致 |
-| 动作素材 | 害羞 = 生成图整身姿势单帧淡入淡出；开心 = 视频帧序列（73 帧 / 12fps） |
+| 动作素材 | 害羞 / 哭泣 = 生成图整身姿势单帧淡入淡出（哭泣保持期带啜泣起伏）；开心 = 视频帧序列（73 帧 / 12fps） |
 | 素材管线 | **Python**（Pillow / NumPy / SciPy）：泛洪抠图、模板匹配对齐、色彩配准、去杂边 |
 | 开发中 | pixi-live2d-display + Live2D Cubism 4 渲染路径（`npm run live2d` 可体验占位链路） |
 | 打包 | electron-builder（Windows 便携 exe） |
@@ -40,7 +41,7 @@
 ### 方式一：下载 exe（推荐，免装 Node.js）
 
 1. 到 [Releases](https://github.com/M66Y/Endfield-Desktop-Pet/releases) 下载
-   **`Gilberta.Desktop.v1.1.Windows.x64.exe`**
+   **`Gilberta.Desktop.v1.2.Windows.x64.exe`**
 2. 双击运行即可——单文件免安装，托盘右键可退出
 3. 首次运行若被 SmartScreen 拦截：点「更多信息」→「仍要运行」
 
@@ -67,13 +68,13 @@ set ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
 npm run dist
 ```
 
-产物在 `dist\Gilberta.Desktop.v1.1.Windows.x64.exe`（需 Node.js ≥ 18）。
+产物在 `dist\Gilberta.Desktop.v1.2.Windows.x64.exe`（需 Node.js ≥ 18）。
 
 ### 交互一览
 
 | 操作 | 反应 |
 | --- | --- |
-| <kbd>Q</kbd> 键（全局） | 交替触发：踢腿 → 害羞 → 开心 → 踢腿……循环 |
+| <kbd>Q</kbd> 键（全局） | 循环触发：踢腿 → 害羞 → 开心 → 哭泣 → 踢腿…… |
 | 单击 | 小踢腿 |
 | 按住拖动 | 跟着鼠标走，身体随速度倾斜，松手晃两下站稳 |
 | 静静看着 | 呼吸、眨眼、尾巴飘、耳朵抖，偶尔歪头，低概率自己害羞 |
@@ -110,13 +111,14 @@ assets/            零件 PNG + 动作素材 + manifest.js（由管线生成）
 | --- | --- |
 | 基础切片 | `tools/process.py` —— 参考图抠图、去水印、按折线切可动零件 |
 | 害羞整身姿势 | `tools/shy_pose_pack.py` —— 参考图整只角色抠出（去底 + 刘海NCC对齐 + 眉眼暗结构精化 + 脚底锚点配准 + 去白边），单帧 clip 淡入淡出 |
+| 哭泣整身姿势 | `tools/cry_pose_pack.py` —— 与害羞同管线；扩边画布防止耳尖/马尾尖被基准画布裁切（对齐解超画布时保完整包围盒） |
 | 开心帧序列 | `ffmpeg` 抽帧 → `tools/happy_frames.py` 去底 → `tools/happy_pack.py` 打包 → `tools/happy_fix.py` 切灰边并向纸偶配准色调 → `tools/happy_fit.py` 等比适配纸偶比例（高 622 / 脚底 640 / 居中） |
 | 前臂零件 | `tools/arms.py` —— 切出前臂+手套并修补底图挖孔 |
 | 换表情贴片 | `tools/face.py` —— 从同角色不同表情生成图切脸贴回（命名 `happy` 拖拽时自动使用） |
 | 去白边 | `tools/defringe.py` —— 白底抠图边缘残留的白色混合像素逆向清除 |
 | 预览 / 动图 | `npm run preview` 生成透明底姿势截图与帧序列，`python tools/make_gif.py` 合成 GIF |
 
-Q 键动作循环在 `src/renderer.js` 的 `playNextAction()`，想加动作就在那里加分支。
+Q 键动作循环在 `src/renderer.js` 的 `ACTIONS` 注册表：新动作 = 一条注册 + 一个 start 函数；单帧姿势类动作在 `POSE` 表加时间曲线即可。
 </details>
 
 ## 🗺 未来开发方向

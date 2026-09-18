@@ -1,4 +1,4 @@
-// 洁尔佩塔桌宠 —— 原图分层纸偶渲染 / 状态机（idle / click / drag / shy）/ 键盘 Q 交替触发动作
+// 洁尔佩塔桌宠 —— 原图分层纸偶渲染 / 状态机（idle / kick / drag / 单帧姿势 shy·cry / 帧序列 happy）/ 键盘 Q 循环触发动作
 // 所有动画都在“素材像素坐标系”里进行，零件来自 tools/process.py 的抠图产物
 const canvas = document.getElementById('pet');
 const ctx = canvas.getContext('2d');
@@ -63,7 +63,13 @@ const ease = (t) => { t = clamp01(t); return t * t * (3 - 2 * t); };
 // ---------- 动画状态 ----------
 const CLICK_DUR = 1.05;
 const KICK_ANG = 10;   // 踢腿角度（小踢腿，配合起跳）
-const SHY = { wind: 0.2, raise: 0.34, hold: 2.3, fall: 0.5 }; // 预备吸气+表情浮现+恢复
+// 单帧整身姿势动作（参考图抠出，与纸偶同基准 622/640/266.5）：
+// wind 预备吸气（纸偶阶段）→ raise 姿势淡入 → hold 保持（情绪微动）→ fall 淡出
+// lean0 保持期基础倾角；swayHz/swayAmp 慢速摇摆；sobHz/sobAmp 啜泣节奏（0 = 无）
+const POSE = {
+  shy: { wind: 0.2,  raise: 0.34, hold: 2.3, fall: 0.5, lean0: -1.6, swayHz: 0.35, swayAmp: 0.7, sobHz: 0,   sobAmp: 0 },
+  cry: { wind: 0.25, raise: 0.45, hold: 3.2, fall: 0.8, lean0: 1.0,  swayHz: 0.55, swayAmp: 0.4, sobHz: 1.1, sobAmp: 1.0 },
+};
 const CLIP = { fin: 0.15, fout: 0.25 };             // 帧序列动作淡入/淡出
 const A = {
   t: 0, state: 'idle',
@@ -71,7 +77,7 @@ const A = {
   ear: { L: { next: rnd(2, 6), t: -1 }, R: { next: rnd(3, 7), t: -1 } },
   act: { type: 'none', t: 0, dur: 0, next: rnd(5, 9), dir: 1 },
   click: { t: 1e9, leg: 1 },
-  shy: { t: 1e9 },
+  pose: { name: 'shy', t: 1e9 },
   clip: { t: 1e9 },
   press: false, drag: false,
   vx: 0, vy: 0, lean: 0, leanV: 0,
@@ -82,32 +88,37 @@ const A = {
 function startKick() {
   A.state = 'kick';
   A.click.t = 0;
-  A.shy.t = 1e9; // 踢腿会打断害羞
+  A.pose.t = 1e9; // 踢腿会打断姿势动作
   A.clip.t = 1e9;
   A.click.leg *= -1;
   A.ear.L.t = 0; A.ear.L.next = A.t + rnd(3.5, 9);
   A.ear.R.t = 0.12; A.ear.R.next = A.t + rnd(3.5, 9);
 }
 
-function startShy() {
-  A.shy.t = 0;
+function startPose(name) {
+  const P = POSE[name];
+  A.pose.name = name;
+  A.pose.t = 0;
   A.clip.t = 1e9;
-  A.act.next = A.t + SHY.raise + SHY.hold + SHY.fall + rnd(9, 16);
+  A.act.next = A.t + P.wind + P.raise + P.hold + P.fall + rnd(9, 16);
 }
+const startShy = () => startPose('shy');
+const startCry = () => startPose('cry');
 
 function startHappy() {
   const C = M.clips.happy;
   A.clip.t = 0;
-  A.shy.t = 1e9;
+  A.pose.t = 1e9;
   A.act.next = A.t + C.count / C.fps + rnd(9, 16);
 }
 
-// ---------- 键盘 Q：交替触发三个动作（主进程全局热键转发） ----------
-let hotkeyNext = 0; // 0: 踢腿, 1: 害羞, 2: 开心
+// ---------- 键盘 Q：循环触发动作（主进程全局热键转发） ----------
+const ACTIONS = ['kick', 'shy', 'happy', 'cry'];
+const STARTERS = { kick: startKick, shy: startShy, happy: startHappy, cry: startCry };
+let hotkeyNext = 0;
 function playNextAction() {
-  if (hotkeyNext === 0) { startKick(); hotkeyNext = 1; }
-  else if (hotkeyNext === 1) { startShy(); hotkeyNext = 2; }
-  else { startHappy(); hotkeyNext = 0; }
+  STARTERS[ACTIONS[hotkeyNext % ACTIONS.length]]();
+  hotkeyNext = (hotkeyNext + 1) % ACTIONS.length;
 }
 if (window.pet.onAction) window.pet.onAction(playNextAction);
 
@@ -120,7 +131,7 @@ function update(dt) {
   let wag = 1;
   if (kickActive) wag = 2.6;
   if (A.act.type === 'wag' && !kickActive && !dragging) wag = 2.6;
-  if (A.shy.t < 1e9) wag = 2.1;
+  if (A.pose.t < 1e9) wag = A.pose.name === 'cry' ? 0 : 2.1; // 哭泣时尾巴僵住
   A.tailPhase += dt * (Math.PI * 2 / 3.2) * wag;
 
   // 眨眼
@@ -140,7 +151,7 @@ function update(dt) {
 
   // 待机小动作（偶尔害羞一次）
   const act = A.act;
-  if (A.state === 'idle' && !A.press && !dragging && A.t > act.next && A.shy.t >= 1e9) {
+  if (A.state === 'idle' && !A.press && !dragging && A.t > act.next && A.pose.t >= 1e9) {
     if (Math.random() < 0.16) {
       startShy();
     } else {
@@ -187,26 +198,32 @@ function update(dt) {
     A.lean += A.leanV * dt;
   }
 
-  // 害羞: 预备吸气(纸偶) -> 整身参考图姿势(合手+害羞表情, 单帧 clip)淡入 -> 保持 -> 淡出
-  let shyE = 0, shyLean = 0, shyClip = null;
-  let windP = 0;
-  if (A.shy.t < 1e9 && !dragging) {
-    A.shy.t += dt;
-    const st = A.shy.t;
-    const TOT = SHY.wind + SHY.raise + SHY.hold + SHY.fall;
-    if (st >= TOT) A.shy.t = 1e9;
-    else if (st < SHY.wind) {
-      windP = Math.sin((st / SHY.wind) * Math.PI);      // 预备帧: 吸气, 身体上提绷住
+  // 单帧姿势动作（害羞/哭泣）: 预备吸气(纸偶) -> 整身参考图姿势淡入 -> 保持(情绪微动) -> 淡出
+  // 哭泣保持期叠加啜泣节奏: sob 耸身(纵向微放大) + sobDy 塌落(整体下沉), 由整图脚底锚点变换呈现
+  let poseE = 0, poseLean = 0, poseClip = null;
+  let windP = 0, sob = 0, sobDy = 0;
+  if (A.pose.t < 1e9 && !dragging) {
+    A.pose.t += dt;
+    const P = POSE[A.pose.name], st = A.pose.t;
+    const TOT = P.wind + P.raise + P.hold + P.fall;
+    if (st >= TOT) A.pose.t = 1e9;
+    else if (st < P.wind) {
+      windP = Math.sin((st / P.wind) * Math.PI);      // 预备帧: 吸气, 身体上提绷住
     } else {
-      const st2 = st - SHY.wind;
-      const r = ease(st2 / SHY.raise);
-      const f = ease((st2 - SHY.raise - SHY.hold) / SHY.fall);
-      shyE = Math.min(r, 1 - f);
-      shyLean = -1.6 * shyE + shyE * Math.sin(st2 * Math.PI * 2 * 0.35) * 0.7;  // 缓慢后仰+轻摇(不做高频颤抖)
-      if (M.clips.shy) shyClip = { name: 'shy', i: 0, alpha: shyE };
+      const st2 = st - P.wind;
+      const r = ease(st2 / P.raise);
+      const f = ease((st2 - P.raise - P.hold) / P.fall);
+      poseE = Math.min(r, 1 - f);
+      poseLean = P.lean0 * poseE + poseE * Math.sin(st2 * Math.PI * 2 * P.swayHz) * P.swayAmp;
+      if (P.sobHz) {
+        const s = Math.sin(st2 * Math.PI * 2 * P.sobHz);
+        sob = Math.pow(Math.max(0, s), 1.5) * P.sobAmp;
+        sobDy = Math.max(0, -s) * 1.6 * P.sobAmp;
+      }
+      if (M.clips[A.pose.name]) poseClip = { name: A.pose.name, i: 0, alpha: poseE };
     }
   } else {
-    A.shy.t = 1e9;
+    A.pose.t = 1e9;
   }
 
   // 开心（视频帧序列）：整段播放, 前后淡入淡出; 拖拽即打断
@@ -234,7 +251,7 @@ function update(dt) {
   const pose = {
     t: A.t,
     breath,
-    lean: A.lean + idleSway + actLean + clickLean + shyLean,
+    lean: A.lean + idleSway + actLean + clickLean + poseLean,
     hop: -hop - windP * 4,
     blink: blinkP,
     kick, kickSide: A.click.leg,
@@ -244,8 +261,8 @@ function update(dt) {
     tailDyL: Math.sin(A.tailPhase * 1.3) * 1.8,
     tailDyR: Math.sin(A.tailPhase * 1.3 + 0.8) * 1.8,
     wagging: kickActive || (A.act.type === 'wag'),
-    shyE, windP,
-    clip: clipPose || shyClip,
+    poseE, windP, sob, sobDy,
+    clip: clipPose || poseClip,
   };
   return pose;
 }
@@ -338,12 +355,12 @@ function render(pose) {
     const C = M.clips[pose.clip.name];
     const im = clipImgs[pose.clip.name] && clipImgs[pose.clip.name][pose.clip.i];
     if (im && im.complete && im.naturalWidth > 0) {
-      if (pose.clip.name === 'shy') {
-        // 害羞整身姿势: 与纸偶同脚底锚点, 叠加呼吸/后仰轻摇/扭捏轻颤
+      if (C.count === 1) {
+        // 单帧整身姿势: 与纸偶同脚底锚点, 叠加呼吸/倾摆; 哭泣再叠加啜泣(耸身+塌落)
         octx.translate(FEET_AX, FEET_AY);
         octx.rotate((pose.lean || 0) * RAD);
-        octx.scale(1 - (pose.breath || 0) * 0.007, 1 + (pose.breath || 0) * 0.011);
-        octx.translate(pose.hop || 0, 0);
+        octx.scale(1 - (pose.breath || 0) * 0.007, 1 + (pose.breath || 0) * 0.011 + (pose.sob || 0) * 0.006);
+        octx.translate(0, pose.sobDy || 0);
         octx.translate(-FEET_AX, -FEET_AY);
       }
       octx.globalAlpha = pose.clip.alpha;
@@ -429,7 +446,7 @@ canvas.addEventListener('mousemove', (e) => {
   if (A.press) {
     if (!A.drag) {
       const dxT = e.screenX - A.downSX, dyT = e.screenY - A.downSY;
-      if (dxT * dxT + dyT * dyT > 49) { A.drag = true; A.state = 'drag'; A.shy.t = 1e9; }
+      if (dxT * dxT + dyT * dyT > 49) { A.drag = true; A.state = 'drag'; A.pose.t = 1e9; }
     }
     if (A.drag) {
       const now = performance.now();
@@ -492,11 +509,13 @@ async function runPreview() {
     kick: 0, tailL: -3, tailR: -3, tailDyL: -2, tailDyR: -2,
   };
   await wait(120); await pet.capture('drag');
-  currentPose = { t: 4, breath: 0.3, lean: 0.8, shyE: 1, windP: 0, clip: { name: 'shy', i: 0, alpha: 1 } };
+  currentPose = { t: 4, breath: 0.3, lean: 0.8, poseE: 1, windP: 0, clip: { name: 'shy', i: 0, alpha: 1 } };
   await wait(120); await pet.capture('shy');
-  currentPose = { t: 5, clip: { name: 'happy', i: 18, alpha: 1 } };
+  currentPose = { t: 5, breath: 0.2, lean: 0.5, poseE: 1, sob: 0.8, sobDy: 1.2, clip: { name: 'cry', i: 0, alpha: 1 } };
+  await wait(120); await pet.capture('cry');
+  currentPose = { t: 6, clip: { name: 'happy', i: 18, alpha: 1 } };
   await wait(120); await pet.capture('happy');
-  // 动画 GIF：12fps，待机 + 踢腿 + 害羞 + 开心片段
+  // 动画 GIF：12fps，待机 + 踢腿 + 害羞 + 开心 + 哭泣片段
   const STEP = 1 / 12;
   const nextFrame = () => new Promise((r) => requestAnimationFrame(r));
   const pad = (n) => String(n).padStart(2, '0');
@@ -513,13 +532,18 @@ async function runPreview() {
     await nextFrame(); await pet.capture('gif_' + pad(n));
   }
   startShy();
-  const shyFrames = Math.ceil((SHY.raise + SHY.hold + SHY.fall) / STEP);
+  const shyFrames = Math.ceil((POSE.shy.raise + POSE.shy.hold + POSE.shy.fall) / STEP);
   for (let i = 0; i < shyFrames; i++, n++) {
     currentPose = update(STEP);
     await nextFrame(); await pet.capture('gif_' + pad(n));
   }
   startHappy();
   for (let i = 0; i < 30; i++, n++) { // GIF 里截取开心片段前 2.5 秒(完整动作 6 秒太长)
+    currentPose = update(STEP);
+    await nextFrame(); await pet.capture('gif_' + pad(n));
+  }
+  startCry();
+  for (let i = 0; i < 40; i++, n++) { // 哭泣片段 ~3.3 秒(淡入+啜泣+开始淡出)
     currentPose = update(STEP);
     await nextFrame(); await pet.capture('gif_' + pad(n));
   }

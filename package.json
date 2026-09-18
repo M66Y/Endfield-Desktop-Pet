@@ -1,7 +1,7 @@
 {
   "name": "gilberta-desktop-pet",
   "productName": "Gilberta Desktop",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "《明日方舟：终末地》洁尔佩塔 Q版桌面宠物（Electron + Canvas 矢量实时渲染）",
   "main": "main.js",
   "scripts": {
@@ -43,7 +43,7 @@
       "icon": "build/icon.ico"
     },
     "portable": {
-      "artifactName": "Gilberta.Desktop.v1.1.Windows.x64.exe"
+      "artifactName": "Gilberta.Desktop.v1.2.Windows.x64.exe"
     }
   }
 }
