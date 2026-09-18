@@ -1,0 +1,15 @@
+{
+  "id": "lewantin",
+  "name": "莱万汀",
+  "version": "0.1.0",
+  "renderer": "renderer.js",
+  "defaultZoom": 1,
+  "actions": [
+    { "index": 1, "id": "hold_icecream", "label": "持雪糕" },
+    { "index": 2, "id": "eat_icecream",  "label": "吃雪糕" },
+    { "index": 3, "id": "drop_sad",      "label": "雪糕掉了委屈" },
+    { "index": 4, "id": "angry_arms",    "label": "生气抱臂" },
+    { "index": 5, "id": "sleep_idle",    "label": "睡觉待机" },
+    { "index": 6, "id": "wake_up",       "label": "被叫醒" }
+  ]
+}

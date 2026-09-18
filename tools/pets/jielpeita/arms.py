@@ -71,7 +71,7 @@ def main():
 
     # 工作坐标里的手臂掩码 = 多边形 ∩ 角色掩码
     CW, CH = 533, 640
-    base_im = Image.open('assets/base.png').convert('RGBA')
+    base_im = Image.open('assets/pets/jielpeita/base.png').convert('RGBA')
     base = np.array(base_im)
     char = base[:, :, 3] > 127
 
@@ -94,7 +94,7 @@ def main():
             tint = np.zeros_like(np.array(dbg))
             tint[:, :, 0], tint[:, :, 1], tint[:, :, 2], tint[:, :, 3] = col[0], col[1], col[2], edge
             dbg.alpha_composite(Image.fromarray(tint))
-        dbg.crop((100, 350, 460, 560)).resize((720, 420), Image.NEAREST).convert('RGB').save('tools/dbg_arms_mask.png')
+        dbg.crop((100, 350, 460, 560)).resize((720, 420), Image.NEAREST).convert('RGB').save('tools/pets/jielpeita/dbg_arms_mask.png')
         print('debug only')
         return
 
@@ -105,7 +105,7 @@ def main():
     def dilate(m, k):
         return np.array(Image.fromarray((m * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(k * 2 + 1))) > 127
 
-    man = json.load(open('assets/manifest.json', encoding='utf8'))
+    man = json.load(open('assets/pets/jielpeita/manifest.json', encoding='utf8'))
     for name, m, poly, piv in (('handL', mL, POLY_L, PIVOT_L), ('handR', mR, POLY_R, PIVOT_R)):
         md = dilate(m, 1)  # 外扩 1px 盖住切缝
         ys, xs = np.where(md)
@@ -114,7 +114,7 @@ def main():
         rgba = base.copy()
         rgba[:, :, 3] = np.where(md, base[:, :, 3], 0)
         sub = rgba[oy:oy + h, ox:ox + w]
-        Image.fromarray(sub).save(f'assets/{name}.png')
+        Image.fromarray(sub).save(f'assets/pets/jielpeita/pets/jielpeita/{name}.png')
         pv = ((piv[0] - cx0) * s - ox, (piv[1] - cy0) * s - oy)
         man.setdefault('sprites', {})[name] = {
             'img': f'{name}.png', 'ox': ox, 'oy': oy,
@@ -147,11 +147,11 @@ def main():
     grow = dilate(hole_px, 4)
     rgb[grow] = blur[grow]
     base[:, :, :3] = rgb.astype(np.uint8)
-    Image.fromarray(base).save('assets/base.png')
+    Image.fromarray(base).save('assets/pets/jielpeita/base.png')
     print('base.png 挖孔+修补完成')
 
-    json.dump(man, open('assets/manifest.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
-    with open('assets/manifest.js', 'w', encoding='utf8') as f:
+    json.dump(man, open('assets/pets/jielpeita/manifest.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
+    with open('assets/pets/jielpeita/manifest.js', 'w', encoding='utf8') as f:
         f.write('window.PET_MANIFEST = ')
         json.dump(man, f, ensure_ascii=False)
         f.write(';\n')

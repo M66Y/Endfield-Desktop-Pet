@@ -1,12 +1,14 @@
 {
   "name": "gilberta-desktop-pet",
   "productName": "Gilberta Desktop",
-  "version": "1.2.0",
-  "description": "《明日方舟：终末地》洁尔佩塔 Q版桌面宠物（Electron + Canvas 矢量实时渲染）",
+  "version": "1.3.0",
+  "description": "《明日方舟：终末地》洁尔佩塔 & 莱万汀 Q版桌面宠物（Electron + Canvas 实时渲染，多宠隔离架构）",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "lewantin": "electron . --pet=lewantin",
     "preview": "electron . --preview",
+    "preview:lewantin": "electron . --preview --pet=lewantin",
     "live2d": "electron . --live2d",
     "dist": "electron-builder --win portable --x64"
   },
@@ -43,7 +45,7 @@
       "icon": "build/icon.ico"
     },
     "portable": {
-      "artifactName": "Gilberta.Desktop.v1.2.Windows.x64.exe"
+      "artifactName": "Gilberta.Desktop.v1.3.Windows.x64.exe"
     }
   }
 }

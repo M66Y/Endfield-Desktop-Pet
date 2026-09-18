@@ -1,18 +1,19 @@
-# 害羞整身姿势打包: 把参考图(D:\下载\害羞1.png)整只角色抠出 -> 对齐到资产坐标系
-# -> 按脚底锚点缩放配准(与开心帧序列同规格: 高622, 脚底线640) -> assets/shy_00.webp
-# 害羞动作播放该单帧姿势(淡入淡出), 100% 还原参考图的合手+表情。
-# 对齐流程与 shy_face_extract.py 相同: 泛洪去底 + 刘海NCC + 眉眼暗结构精化。
+# 哭泣整身姿势打包: 把参考图(D:\下载\哭泣1.png)整只角色抠出 -> 对齐到资产坐标系
+# -> 按脚底锚点缩放配准(与害羞/开心同规格: 高622, 脚底线640, 居中266.5) -> assets/cry_00.webp
+# 哭泣动作播放该单帧姿势(淡入淡出+啜泣节奏), 100% 还原参考图的攥拳+大哭表情。
+# 流程与 shy_pose_pack.py 一致(两图同为豆包同规格生成, 实测构图仅差1~2px, 参数直接复用):
+# 泛洪去底 + 刘海NCC对齐 + 眉眼暗结构精化 + 肤色配准 + 去白边。
 import json
 from collections import deque
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image
 from scipy.signal import fftconvolve
 
-SRC_SHY = r'D:\下载\害羞1.png'
-OUT = 'assets'
+SRC_CRY = r'D:\下载\哭泣1.png'
+OUT = 'assets/pets/jielpeita'
 
-# 与 shy_face_extract.py 一致: 额头皮肤中位数配对做整图微调, 消除与纸偶的色调差
+# 额头皮肤中位数配对做整图微调, 消除与纸偶的色调差(配准带在 base 坐标系, 与害羞共用)
 COLOR_PAIR_BAND = (194, 212, 185, 355)
 
 
@@ -67,16 +68,16 @@ def gray_white(im):
     return gray, mask
 
 
-# ---------- 1. 去底 ----------
-shy = Image.open(SRC_SHY).convert('RGB')
-shy_arr = np.array(shy)
-shy_arr[2140:, 1400:, :] = 255  # 水印
-alpha_shy = flood_alpha(shy_arr)
-shy_rgba = Image.fromarray(np.dstack([shy_arr, alpha_shy]))
+# ---------- 1. 去底(水印"豆包AI生成"实测在 (1533,2139)-(1826,2204), 清除区不含角色像素) ----------
+cry = Image.open(SRC_CRY).convert('RGB')
+cry_arr = np.array(cry)
+cry_arr[2135:, 1450:, :] = 255  # 水印
+alpha_cry = flood_alpha(cry_arr)
+cry_rgba = Image.fromarray(np.dstack([cry_arr, alpha_cry]))
 
 # ---------- 2. 刘海NCC 对齐到 base(资产坐标系) ----------
 TX0, TY0, TX1, TY1 = 500, 580, 1200, 800
-g_new, mask_new = gray_white(shy_rgba)
+g_new, mask_new = gray_white(cry_rgba)
 T = g_new[TY0:TY1, TX0:TX1]
 M = mask_new[TY0:TY1, TX0:TX1].astype(np.float32)
 
@@ -108,19 +109,23 @@ fine = search(np.arange(coarse[1] - 0.012, coarse[1] + 0.0125, 0.002), ds=1)
 sc, tx, ty = fine[1], fine[2], fine[3]
 print(f'ncc: scale={sc:.4f} t=({tx:.2f},{ty:.2f})')
 
+# 扩边画布: 哭泣图 NCC 最优解下角色内容(~641px)略超 640 基准画布, 直接贴会切耳尖/马尾尖
+PAD = 64
+
 
 def build_aligned(tx, ty):
-    nw, nh = round(shy_rgba.width * sc), round(shy_rgba.height * sc)
-    s = shy_rgba.resize((nw, nh), Image.LANCZOS)
-    layer = Image.new('RGBA', base.size, (0, 0, 0, 0))
-    layer.paste(s, (round(tx), round(ty)), s)
-    return layer
+    nw, nh = round(cry_rgba.width * sc), round(cry_rgba.height * sc)
+    s = cry_rgba.resize((nw, nh), Image.LANCZOS)
+    big = Image.new('RGBA', (base.size[0] + PAD * 2, base.size[1] + PAD * 2), (0, 0, 0, 0))
+    big.paste(s, (round(tx) + PAD, round(ty) + PAD), s)
+    return big
 
 
 al = build_aligned(tx, ty)
-aligned = np.array(al).astype(np.int32)
+# base 坐标系窗口(配色准/暗结构精化用); 完整角色留在扩边画布上, 包围盒不会被基准画布裁短
+aligned = np.array(al)[PAD:PAD + 640, PAD:PAD + 533].astype(np.int32)
 
-# ---------- 3. 眉眼暗结构精化 ----------
+# ---------- 3. 眉眼暗结构精化(哭泣为闭眼哭脸, 暗结构=八字眉+闭眼线, 分布与害羞不同, 权重仅供参考) ----------
 base_l = (0.299 * base_arr[:, :, 0] + 0.587 * base_arr[:, :, 1] + 0.114 * base_arr[:, :, 2])
 BX0, BY0, BX1, BY1 = 172, 195, 362, 258
 bd = base_l < 105
@@ -141,10 +146,10 @@ _, ddx, ddy = best
 tx += ddx; ty += ddy
 print(f'dark snap: dx={ddx} dy={ddy}')
 al = build_aligned(tx, ty)
-aligned = np.array(al).astype(np.int32)
+aligned = np.array(al)[PAD:PAD + 640, PAD:PAD + 533].astype(np.int32)
 
-# ---------- 4. 角色包围盒 + 脚底锚点配准(高622, 脚底线640, 与开心帧一致) ----------
-alpha_w = aligned[:, :, 3]
+# ---------- 4. 角色包围盒(扩边画布上取, 耳尖/马尾尖完整) + 脚底锚点配准(高622, 脚底线640, 等比不变形) ----------
+alpha_w = np.array(al)[:, :, 3]
 ys2, xs2 = np.where(alpha_w > 127)
 top, bottom = int(ys2.min()), int(ys2.max())
 left, right = int(xs2.min()), int(xs2.max())
@@ -152,7 +157,9 @@ S = 622.0 / (bottom - top + 1)
 crop = al.crop((left, top, right + 1, bottom + 1))
 w2 = round(crop.width * S)
 pose_im = crop.resize((w2, 622), Image.LANCZOS)
-print(f'char bbox work=({left},{top})-({right},{bottom}) scale={S:.4f} -> {w2}x622')
+print(f'char bbox big=({left},{top})-({right},{bottom}) scale={S:.4f} -> {w2}x622')
+rows_top = (np.array(pose_im)[:, :, 3] > 127).sum(axis=1)[:6].tolist()
+print(f'pose top-6 row widths: {rows_top} (应从窄到宽自然收拢, 不出现宽切面)')
 
 # ---------- 5. 肤色调和微调 + 去白边 ----------
 band = (COLOR_PAIR_BAND[0], COLOR_PAIR_BAND[1], COLOR_PAIR_BAND[2], COLOR_PAIR_BAND[3])
@@ -178,22 +185,22 @@ pa[:, :, :3] = np.where(semi, rgb, pa[:, :, :3]).astype(np.int32)
 print(f'defringed {int(semi.sum())} edge px')
 
 out = pa.astype(np.uint8)
-Image.fromarray(out).save(f'{OUT}/shy_00.webp', quality=93)
+Image.fromarray(out).save(f'{OUT}/cry_00.webp', quality=93)
 ox = round(266.5 - w2 / 2)
-oy = 640 - 622  # 脚底线 640, 与开心帧一致
+oy = 640 - 622  # 脚底线 640, 与害羞/开心帧一致
 
 man = json.load(open(f'{OUT}/manifest.json', encoding='utf8'))
-man.setdefault('clips', {})['shy'] = {'count': 1, 'fps': 1, 'ext': 'webp', 'ox': ox, 'oy': oy, 'w': w2, 'h': 622}
+man.setdefault('clips', {})['cry'] = {'count': 1, 'fps': 1, 'ext': 'webp', 'ox': ox, 'oy': oy, 'w': w2, 'h': 622}
 json.dump(man, open(f'{OUT}/manifest.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
 with open(f'{OUT}/manifest.js', 'w', encoding='utf8') as f:
     f.write('window.PET_MANIFEST = ')
     json.dump(man, f, ensure_ascii=False)
     f.write(';\n')
-print(f'assets/shy_00.webp saved, clips.shy ox={ox} oy={oy} w={w2} h=622')
+print(f'assets/pets/jielpeita/pets/jielpeita/cry_00.webp saved, clips.cry ox={ox} oy={oy} w={w2} h=622')
 
-# ---------- 6. 调试合成: 白底 + 姿势图(检查脚底对位) ----------
+# ---------- 6. 调试合成: 白底 + 纸偶base + 哭泣姿势(检查脚底对位/身高/居中) ----------
 prev = Image.new('RGBA', base.size, (255, 255, 255, 255))
 prev.alpha_composite(base)
 prev.alpha_composite(Image.fromarray(out), (ox, oy))
-prev.convert('RGB').save('tools/dbg_shy_pose.png')
-print('saved tools/dbg_shy_pose.png')
+prev.convert('RGB').save('tools/pets/jielpeita/dbg_cry_pose.png')
+print('saved tools/dbg_cry_pose.png')

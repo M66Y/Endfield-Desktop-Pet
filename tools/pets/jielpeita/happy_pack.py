@@ -16,7 +16,7 @@ ANCHOR = (266, 636)   # 脚底中心锚点(资产坐标), 与纸偶脚线一致
 TARGET_H = float(sys.argv[1]) if len(sys.argv) > 1 else 600
 SHADOW = dict(sat=20, lo=100, hi=215, band=0.13)  # 阴影判定: 低饱和灰 & 底部条带
 
-files = sorted(glob.glob('tools/tmp_happy/f*.png'))
+files = sorted(glob.glob('tools/pets/jielpeita/tmp_happy/f*.png'))
 assert files, 'no frames (run ffmpeg first)'
 
 # ---- 1. 去底 + 去阴影 ----
@@ -69,7 +69,7 @@ for cv in registered:
 print('union rect:', u_x0, u_y0, u_x1, u_y1)
 
 # ---- 3. 颜色向纸偶配准(均值/方差匹配) + 锐化 + WebP ----
-base_im = Image.open('assets/base.png').convert('RGBA')
+base_im = Image.open('assets/pets/jielpeita/base.png').convert('RGBA')
 barr = np.array(base_im).astype(np.float32)
 bmask = barr[:, :, 3] > 200
 bpx = barr[:, :, :3][bmask]
@@ -93,18 +93,18 @@ for i, cv in enumerate(registered):
     out_im = Image.fromarray(arr.astype(np.uint8))
     out_im.putalpha(a)
     out_im = out_im.filter(ImageFilter.UnsharpMask(radius=2, percent=90, threshold=2))
-    out = f'assets/happy_{i:02d}.webp'
+    out = f'assets/pets/jielpeita/pets/jielpeita/happy_{i:02d}.webp'
     out_im.save(out, quality=93, method=6)
     total += os.path.getsize(out)
 print(f'{len(registered)} frames, total {total / 1e6:.2f} MB')
 
-man = json.load(open('assets/manifest.json', encoding='utf8'))
+man = json.load(open('assets/pets/jielpeita/manifest.json', encoding='utf8'))
 man.setdefault('clips', {})['happy'] = {
     'count': len(registered), 'fps': 12, 'ext': 'webp',
     'ox': u_x0, 'oy': u_y0, 'w': u_x1 - u_x0 + 1, 'h': u_y1 - u_y0 + 1,
 }
-json.dump(man, open('assets/manifest.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
-with open('assets/manifest.js', 'w', encoding='utf8') as f:
+json.dump(man, open('assets/pets/jielpeita/manifest.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
+with open('assets/pets/jielpeita/manifest.js', 'w', encoding='utf8') as f:
     f.write('window.PET_MANIFEST = ')
     json.dump(man, f, ensure_ascii=False)
     f.write(';\n')

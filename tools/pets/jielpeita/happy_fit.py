@@ -9,7 +9,7 @@ import os
 import numpy as np
 from PIL import Image
 
-ORIG_DIR = 'tools/tmp_happy_orig'
+ORIG_DIR = 'tools/pets/jielpeita/tmp_happy_orig'
 TARGET_H = 622   # 与害羞姿势相同的角色内容高
 FEET_Y = 640     # 地面线
 CENTER_X = 266.5 # 身体水平中心(与纸偶一致)
@@ -32,13 +32,13 @@ for src in sorted(glob.glob(f'{ORIG_DIR}/happy_*.webp')):
     scaled = im.resize((nw, nh), Image.LANCZOS)
     canvas = Image.new('RGBA', (CW, CH), (0, 0, 0, 0))
     canvas.alpha_composite(scaled, (round(CENTER_X - nw / 2), FEET_Y - nh))
-    canvas.save(src.replace(ORIG_DIR, 'assets'), quality=93)
+    canvas.save(src.replace(ORIG_DIR, 'assets/pets/jielpeita'), quality=93)
 
-man = json.load(open('assets/manifest.json', encoding='utf8'))
+man = json.load(open('assets/pets/jielpeita/manifest.json', encoding='utf8'))
 man['clips']['happy'].update({'ox': 0, 'oy': 0, 'w': CW, 'h': CH})
-json.dump(man, open('assets/manifest.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
-with open('assets/manifest.js', 'w', encoding='utf8') as f:
+json.dump(man, open('assets/pets/jielpeita/manifest.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
+with open('assets/pets/jielpeita/manifest.js', 'w', encoding='utf8') as f:
     f.write('window.PET_MANIFEST = ')
     json.dump(man, f, ensure_ascii=False)
     f.write(';\n')
-print(f'assets/happy_*.webp updated, clips.happy ox=0 oy=0 w={CW} h={CH}')
+print(f'assets/pets/jielpeita/pets/jielpeita/happy_*.webp updated, clips.happy ox=0 oy=0 w={CW} h={CH}')

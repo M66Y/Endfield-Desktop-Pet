@@ -12,20 +12,20 @@ from PIL import Image, ImageFilter
 BG = np.array([210.0, 210.0, 210.0])  # 原视频灰底渐变 176-235 的中值
 
 # 目标统计: 纸偶
-base = np.array(Image.open('assets/base.png').convert('RGBA')).astype(np.float32)
+base = np.array(Image.open('assets/pets/jielpeita/base.png').convert('RGBA')).astype(np.float32)
 bc = base[:, :, 3] > 200
 m_b = base[:, :, :3][bc].mean(axis=0)
 s_b = base[:, :, :3][bc].std(axis=0)
 
 # 源统计: 用第一帧(所有帧同一变换, 避免帧间闪烁)
-f0 = np.array(Image.open('assets/happy_00.webp').convert('RGBA')).astype(np.float32)
+f0 = np.array(Image.open('assets/pets/jielpeita/happy_00.webp').convert('RGBA')).astype(np.float32)
 fc0 = f0[:, :, 3] > 200
 m_h = f0[:, :, :3][fc0].mean(axis=0)
 s_h = f0[:, :, :3][fc0].std(axis=0)
 ratio = np.clip(s_b / s_h, 0.9, 1.1)
 print('target mean', m_b.astype(int), 'src mean', m_h.astype(int), 'std ratio', ratio.round(3))
 
-for p in sorted(glob.glob('assets/happy_*.webp')):
+for p in sorted(glob.glob('assets/pets/jielpeita/happy_*.webp')):
     im = Image.open(p).convert('RGBA')
     a = np.array(im).astype(np.float32)
     alpha = a[:, :, 3:4] / 255.0
@@ -40,4 +40,4 @@ for p in sorted(glob.glob('assets/happy_*.webp')):
     al = out.getchannel('A').filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.7))
     out.putalpha(al)
     out.save(p, quality=93)
-print(f'{len(glob.glob("assets/happy_*.webp"))} frames fixed')
+print(f'{len(glob.glob("assets/pets/jielpeita/happy_*.webp"))} frames fixed')

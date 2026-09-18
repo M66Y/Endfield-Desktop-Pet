@@ -1,0 +1,13 @@
+{
+  "id": "jielpeita",
+  "name": "洁尔佩塔",
+  "version": "1.2.0",
+  "renderer": "renderer.js",
+  "defaultZoom": 1,
+  "actions": [
+    { "index": 1, "id": "kick",  "label": "小踢腿" },
+    { "index": 2, "id": "shy",   "label": "害羞" },
+    { "index": 3, "id": "happy", "label": "开心" },
+    { "index": 4, "id": "cry",   "label": "哭泣" }
+  ]
+}

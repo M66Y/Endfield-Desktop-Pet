@@ -7,7 +7,7 @@ from collections import deque
 import numpy as np
 from PIL import Image
 
-SRC = 'tools/tmp_happy'
+SRC = 'tools/pets/jielpeita/tmp_happy'
 LOW_SAT = 14      # 背景/阴影/水印都是低饱和灰
 MIN_LUM = 168     # 背景亮度下限(渐变暗角 ~176)
 

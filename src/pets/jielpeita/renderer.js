@@ -1,9 +1,14 @@
-// 洁尔佩塔桌宠 —— 原图分层纸偶渲染 / 状态机（idle / kick / drag / 单帧姿势 shy·cry / 帧序列 happy）/ 键盘 Q 循环触发动作
-// 所有动画都在“素材像素坐标系”里进行，零件来自 tools/process.py 的抠图产物
+// 洁尔佩塔桌宠 —— 原图分层纸偶渲染 / 状态机（idle / kick / drag / 单帧姿势 shy·cry / 帧序列 happy）
+// 键盘：Q 循环 kick→shy→happy→cry，Alt+1..4 直选（热键在主进程统一注册并路由，动作链元数据见 pet.json）
+// 所有动画都在“素材像素坐标系”里进行，零件来自 tools/pets/jielpeita/process.py 的抠图产物
+import { PetRuntime } from '../../core/pet-runtime.js';
+
 const canvas = document.getElementById('pet');
 const ctx = canvas.getContext('2d');
 const PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
 const M = window.PET_MANIFEST;
+const ASSETS = '../assets/pets/jielpeita/';
+const infoP = PetRuntime.init(); // 拉取本宠描述符（动作链顺序/标签），供注册表构建
 
 const LOGICAL = 256;      // 逻辑画布
 const CHAR_H = 236;       // 角色在逻辑画布中的高度
@@ -22,7 +27,7 @@ function maybeReady() { if (loaded === total && clipLoaded === clipTotal) start(
 for (const k of Object.keys(M.sprites)) {
   const im = new Image();
   im.onload = () => { loaded++; maybeReady(); };
-  im.src = '../assets/' + M.sprites[k].img;
+  im.src = ASSETS + M.sprites[k].img;
   imgs[k] = im;
 }
 
@@ -35,7 +40,7 @@ for (const name of Object.keys(M.clips || {})) {
   for (let i = 0; i < M.clips[name].count; i++) {
     const im = new Image();
     im.onload = im.onerror = () => { clipLoaded++; maybeReady(); };
-    im.src = '../assets/' + name + '_' + String(i).padStart(2, '0') + '.' + (M.clips[name].ext || 'png');
+    im.src = ASSETS + name + '_' + String(i).padStart(2, '0') + '.' + (M.clips[name].ext || 'png');
     clipImgs[name].push(im);
   }
 }
@@ -112,15 +117,18 @@ function startHappy() {
   A.act.next = A.t + C.count / C.fps + rnd(9, 16);
 }
 
-// ---------- 键盘 Q：循环触发动作（主进程全局热键转发） ----------
-const ACTIONS = ['kick', 'shy', 'happy', 'cry'];
+// ---------- 键盘：Q 循环 / Alt+数字直选（主进程全局热键转发到本宠） ----------
+// 动作链顺序与标签来自 pet.json（kick→shy→happy→cry = 1..4），Q 与数字直选共用同一注册表。
 const STARTERS = { kick: startKick, shy: startShy, happy: startHappy, cry: startCry };
-let hotkeyNext = 0;
-function playNextAction() {
-  STARTERS[ACTIONS[hotkeyNext % ACTIONS.length]]();
-  hotkeyNext = (hotkeyNext + 1) % ACTIONS.length;
+function buildRegistry() {
+  const reg = PetRuntime.makeRegistry();
+  const actions = (PetRuntime.def && PetRuntime.def.actions) || [
+    { id: 'kick' }, { id: 'shy' }, { id: 'happy' }, { id: 'cry' },
+  ];
+  for (const a of actions) reg.add({ id: a.id, label: a.label, start: STARTERS[a.id] });
+  PetRuntime.bindInput(reg);
+  return reg;
 }
-if (window.pet.onAction) window.pet.onAction(playNextAction);
 
 function update(dt) {
   A.t += dt;
@@ -328,7 +336,7 @@ const faceImgs = {};
 if (M.faces) {
   for (const k of Object.keys(M.faces)) {
     const im = new Image();
-    im.src = '../assets/' + M.faces[k].img;
+    im.src = ASSETS + M.faces[k].img;
     faceImgs[k] = im;
   }
 }
@@ -460,12 +468,15 @@ canvas.addEventListener('mousemove', (e) => {
     setIgnore(false);
   } else {
     const p = toLogical(e.clientX, e.clientY);
-    setIgnore(!hitTest(p.x, p.y));
+    const hit = hitTest(p.x, p.y);
+    setIgnore(!hit);
+    if (hit) PetRuntime.reportHover(); // 悬停命中：向主进程上报，成为热键路由目标
   }
 });
 
 canvas.addEventListener('mousedown', (e) => {
   e.preventDefault();
+  PetRuntime.reportSelect(); // 点击选中：成为热键路由目标
   A.press = true; A.drag = false;
   A.downSX = A.lastSX = e.screenX;
   A.downSY = A.lastSY = e.screenY;
@@ -564,7 +575,10 @@ function frame(ts) {
   requestAnimationFrame(frame);
 }
 
-function start() {
+async function start() {
+  await infoP; // 等描述符就绪再建注册表（Q 循环 / Alt+数字直选共用）
+  buildRegistry();
+  PetRuntime.log('[boot] renderer ready');
   resize();
   requestAnimationFrame(frame);
   if (PREVIEW) runPreview();

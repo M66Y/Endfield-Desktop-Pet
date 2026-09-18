@@ -4,4 +4,8 @@ preview/
 tools/tmp_happy/
 __pycache__/
 dist/
-tools/tmp_happy_orig/
+tools/pets/*/tmp_happy_orig/
+# 素材管线的源参考图与调试输出不入库（沿用既有约定：参考图留在本地）
+tools/pets/*/ref_*.png
+tools/pets/*/dbg_*.png
+tools/pets/jielpeita/regress_old/

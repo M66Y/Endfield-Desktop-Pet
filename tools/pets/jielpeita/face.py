@@ -13,7 +13,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 SRC_REF = r'C:\Users\29569\.zcode\cli\image-cache\sess_991e213d-0463-4dae-977e-f6a17e1737c0\image-2c4118a390afa01f5883dabbf889148d.png'
-MANIFEST = 'assets/manifest.json'
+MANIFEST = 'assets/pets/jielpeita/manifest.json'
 
 
 def main():
@@ -43,12 +43,12 @@ def main():
     d.ellipse([w * 0.02, h * 0.02, w * 0.98, h * 0.98], fill=255)
     m = m.filter(ImageFilter.GaussianBlur(w * 0.05))
     out = Image.fromarray(np.dstack([np.array(face), np.array(m)]))
-    out.save(f'assets/face_{name}.png')
+    out.save(f'assets/pets/jielpeita/pets/jielpeita/face_{name}.png')
 
     # 贴回位置 = 底图脸部范围左上角 + 偏移修正
     man.setdefault('faces', {})[name] = {'img': f'face_{name}.png', 'x': rx0 + dx, 'y': ry0 + dy}
     json.dump(man, open(MANIFEST, 'w', encoding='utf8'), ensure_ascii=False, indent=1)
-    with open('assets/manifest.js', 'w', encoding='utf8') as f:
+    with open('assets/pets/jielpeita/manifest.js', 'w', encoding='utf8') as f:
         f.write('window.PET_MANIFEST = ')
         json.dump(man, f, ensure_ascii=False)
         f.write(';\n')

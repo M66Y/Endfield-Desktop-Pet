@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 SRC = r'C:\Users\29569\.zcode\cli\image-cache\sess_991e213d-0463-4dae-977e-f6a17e1737c0\image-2c4118a390afa01f5883dabbf889148d.png'
-OUT = 'assets'
+OUT = 'assets/pets/jielpeita'
 TARGET_H = 640  # 角色像素高度（缩放后）
 
 # ---------- 1. 载入 + 去水印 ----------
@@ -276,5 +276,5 @@ for name in ('tailL', 'tailR', 'legL', 'legR', 'earL', 'earR'):
     dd.line([ (sp['ox'] + sp['pivot'][0], sp['oy'] + sp['pivot'][1] - 8),
               (sp['ox'] + sp['pivot'][0], sp['oy'] + sp['pivot'][1] + 8)], fill=(0, 160, 255), width=2)
 dbg.thumbnail((560, 900))
-dbg.save('tools/dbg_composite.png')
+dbg.save('tools/pets/jielpeita/dbg_composite.png')
 print('debug composite saved')

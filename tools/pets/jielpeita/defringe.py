@@ -8,7 +8,7 @@ from PIL import Image
 FILES = ['base', 'earL', 'earR', 'tailL', 'tailR', 'legL', 'legR', 'handL', 'handR', 'shy_face']
 
 for name in FILES:
-    p = f'assets/{name}.png'
+    p = f'assets/pets/jielpeita/pets/jielpeita/{name}.png'
     im = Image.open(p).convert('RGBA')
     a = np.array(im).astype(np.float32)
     alpha = a[:, :, 3:4] / 255.0
