@@ -8,7 +8,10 @@ const fs = require('fs');
 const SIZE = { 1: 256, 2: 512 };
 const PREVIEW = process.argv.includes('--preview');
 const LIVE2D = process.argv.includes('--live2d'); // Live2D 渲染模式(仅洁尔佩塔, cfg.renderer 偏好在建窗时再读)
-const DEFAULT_PET = 'jielpeita';
+const DEFAULT_PET = (() => {
+  // 分宠打包：每个 exe 的 package.json 里注入自己的 petId（extraMetadata），双击即启动对应桌宠
+  try { return require('./package.json').petId || 'jielpeita'; } catch (e) { return 'jielpeita'; }
+})();
 
 function petArg(argv) {
   for (const a of argv) if (a.startsWith('--pet=')) return a.slice(6);
@@ -375,14 +378,21 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 // ---------- 生命周期 ----------
-const gotLock = app.requestSingleInstanceLock();
+// ---------- 生命周期 ----------
+// 不同桌宠的 exe 产品名不同，但必须共用同一份 userData（配置/日志/单实例锁）：
+// 单实例锁基于 userData 路径，钉住它才能让"启动另一只 exe"转发给已运行实例，
+// 否则两个进程各自持锁、全局热键互相抢占。
+app.setPath('userData', path.join(app.getPath('appData'), 'gilberta-desktop-pet'));
+const gotLock = app.requestSingleInstanceLock({ petId: DEFAULT_PET });
 if (!gotLock) {
   app.quit();
 } else {
-  // 已有实例时再启动（例如点了另一只桌宠的 bat）：同进程内唤出对应桌宠
-  app.on('second-instance', (_e, argv) => {
-    const id = petArg(argv);
-    mainLog('[second-instance]', JSON.stringify(argv.slice(-4)), '-> pet:', id || '(none)');
+  // 已有实例时再启动（例如点了另一只桌宠的 exe/bat）：同进程内唤出对应桌宠。
+  // 分宠 exe 双击启动没有 --pet 参数（portable stub 也不回传自身路径），
+  // 因此第二个实例通过 requestSingleInstanceLock 的 additionalData 声明自己的 petId。
+  app.on('second-instance', (_e, argv, _cwd, additionalData) => {
+    const id = petArg(argv) || (additionalData && additionalData.petId);
+    mainLog('[second-instance] forwarded pet:', id || '(unknown)');
     if (id && PET_DEFS[id]) showPet(id);
     else { const p = pets.get(activePetId); if (p) { p.win.show(); p.win.focus(); } }
   });

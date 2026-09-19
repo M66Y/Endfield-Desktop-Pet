@@ -1,17 +1,17 @@
 <div align="center">
 
-<img src="docs/demo.gif" width="220" alt="洁尔佩塔演示动画：待机 → 踢腿 → 害羞 → 开心 → 哭泣">&nbsp;&nbsp;&nbsp;<img src="docs/lewantin.gif" width="220" alt="莱万汀演示动画：持雪糕 → 吃雪糕 → 掉了委屈 → 生气抱臂 → 打瞌睡 → 被叫醒">
+<img src="docs/demo.gif" width="220" alt="洁尔佩塔演示动画：待机 → 踢腿 → 害羞 → 开心 → 哭泣">&nbsp;&nbsp;<img src="docs/lewantin.gif" width="220" alt="莱万汀演示动画：持雪糕 → 吃雪糕 → 掉了委屈 → 生气抱臂 → 打瞌睡 → 被叫醒">
 
 # Gilberta Desktop · 桌宠（洁尔佩塔 & 莱万汀）
 
-**《明日方舟：终末地》Q 版桌面宠物** · v1.3
+**《明日方舟：终末地》Q 版桌面宠物** · v1.4
 
 <table><tr>
 <td align="center" width="50%"><b>洁尔佩塔</b><br>狐耳小姑娘，画面 1:1 取自官方风格立绘（抠图切件、原样拼合），会呼吸、眨眼、摇尾巴，偶尔自己害羞一下</td>
 <td align="center" width="50%"><b>莱万汀</b><br>红卷发黑尖角的慵懒小姑娘，盘腿坐着举一支老冰棒，整条「雪糕小剧场」动作链已全部上线</td>
 </tr></table>
 
-**Windows 10 / 11 · x64 · 免安装单文件**
+**Windows 10 / 11 · x64 · 免安装单文件 · 每只桌宠独立 exe**
 
 </div>
 
@@ -19,10 +19,9 @@
 
 ## ✨ 她们会做什么
 
-- **常驻桌面**：透明背景、窗口置顶（可关），桌面其余区域完全鼠标穿透；鼠标移到她身上才能点住
-- **洁尔佩塔·四个小动作**：按 <kbd>Q</kbd> 循环「踢腿」「害羞」「开心」（视频同款欢快步，约 6 秒）
-  和「哭泣」（嚎啕大哭 + 一抽一抽地啜泣）；<kbd>Alt</kbd>+<kbd>1</kbd>～<kbd>4</kbd> 直接选定
-- **莱万汀·雪糕小剧场（六动作全上线）**：<kbd>Q</kbd> 按链循环，<kbd>Alt</kbd>+<kbd>1</kbd>～<kbd>6</kbd> 直选：
+- **常驻桌面**：透明背景、窗口置顶（可关），桌面其余区域完全鼠标穿透，鼠标移到她身上才能点住。
+- **洁尔佩塔·四个小动作**：按 <kbd>Q</kbd> 循环「踢腿」「害羞」「开心」（视频同款欢快步，约 6 秒）和「哭泣」（嚎啕大哭 + 一抽一抽地啜泣）；<kbd>Alt</kbd>+<kbd>1</kbd>～<kbd>4</kbd> 直接选定。
+- **莱万汀·雪糕小剧场（六动作全上线）**：按 <kbd>Q</kbd> 按链循环，<kbd>Alt</kbd>+<kbd>1</kbd>～<kbd>6</kbd> 直选对应动作。
 
   <div align="center"><img src="docs/lewantin_poses.png" width="600" alt="莱万汀六动作：持雪糕 / 吃雪糕 / 掉了委屈 / 生气抱臂 / 打瞌睡 / 被叫醒"></div>
 
@@ -32,61 +31,46 @@
   | 2 | 吃雪糕 | 「啊呜啊呜」啃咬起伏，约 3.8 秒 |
   | 3 | 雪糕掉了委屈 | 低头 + 一抽一抽地抽噎，约 4.6 秒 |
   | 4 | 生气抱臂 | 「哼！」气鼓节奏、抱臂后仰抬下巴，约 4.2 秒 |
-  | 5 | 打瞌睡 | 慢慢睡着后**一直睡**（0.27Hz 深睡呼吸 + Zzz），直到被叫醒 |
+  | 5 | 打瞌睡 | 慢慢睡着后**一直睡**（深睡呼吸 + Zzz），直到被叫醒 |
   | 6 | 被叫醒 | 猛地坐直、揉眼迷糊，缓缓回神，约 3.5 秒 |
 
-- **待机也有戏**：洁尔佩塔呼吸/眨眼/尾摆/耳抖/偶尔害羞；莱万汀呼吸起伏 + 轻轻摇曳
-- **随手拖走**：按住拖到屏幕任意位置，松手还会晃两下才站稳（拖拽可以打断任何动作、把睡着的莱万汀拖醒）
-- **双宠并行**：两只可同时住在桌面上；键盘只作用于**鼠标悬停/点击选中**的那只，互不串扰
-- **状态记忆**：每只的位置、大小、置顶互相独立，重启后原样恢复
+- **待机也有戏**：洁尔佩塔呼吸、眨眼、尾巴飘、耳朵抖，偶尔歪头害羞；莱万汀呼吸起伏 + 轻轻摇曳。
+- **随手拖走**：按住拖到屏幕任意位置，松手还会晃两下才站稳。拖拽可以打断任何动作——也能把睡着的莱万汀拖醒。
+- **双宠并行**：两只可以同时住在桌面上；键盘只作用于**鼠标悬停 / 点击选中**的那一只，互不串扰。
+- **状态记忆**：每只的位置、大小、置顶互相独立，重启后原样恢复。
 
-## 🖥 技术栈
+## 📦 下载使用
 
-| 层 | 技术 |
+到 [Releases](https://github.com/M66Y/Endfield-Desktop-Pet/releases) 下载对应桌宠的 exe（每只桌宠独立打包，命名格式 `项目名-版本-系统-架构-桌宠.exe`）：
+
+| 文件 | 双击后出现 |
 | --- | --- |
-| 应用壳 | [Electron](https://www.electronjs.org/) 33 —— 多宠多窗口管理、透明置顶无边框、鼠标穿透、托盘、全局热键路由 |
-| 架构 | **按 petId 完全隔离**：每宠独立渲染进程、独立资源目录/动作注册表/配置文件/日志；主进程统一持有热键并按「激活桌宠」分发 |
-| 渲染 | 原生 **Canvas 2D**：洁尔佩塔「纸偶」零件实时合成；莱万汀整身帧 + 呼吸摇曳 |
-| 动作素材 | 洁尔佩塔：害羞/哭泣 = 整身单帧淡入淡出（哭泣带啜泣起伏）、开心 = 视频帧序列（73 帧 / 12fps）；莱万汀：六动作 = 整身单帧姿势 + 情绪节奏曲线（啃咬/抽噎/气鼓/深睡呼吸） |
-| 素材管线 | **Python**（Pillow / NumPy / SciPy）：泛洪抠图、模板匹配对齐、色彩配准、去杂边 |
-| 开发中 | pixi-live2d-display + Live2D Cubism 4 渲染路径（`npm run live2d`，仅洁尔佩塔） |
-| 打包 | electron-builder（Windows 便携 exe） |
+| `Endfield-Desktop-Pet-1.4.0-Windows-x64-Gilberta.exe` | 洁尔佩塔 |
+| `Endfield-Desktop-Pet-1.4.0-Windows-x64-Lewantin.exe` | 莱万汀 |
 
-## 📦 使用方法
+- 双击运行即可，免安装；**先后运行两个 exe 就能双宠同屏**（第二只会自动并入第一只的进程，热键不打架）。
+- 首次运行若被 SmartScreen 拦截：点「更多信息」→「仍要运行」（exe 未做代码签名，误报）。
+- 便携版首次启动需自解压，稍等 1～2 秒她才会出现；托盘狐狸头图标右键可退出、缩放、开关热键。
 
-### 方式一：下载 exe（推荐，免装 Node.js）
-
-1. 到 [Releases](https://github.com/M66Y/Endfield-Desktop-Pet/releases) 下载
-   **`Gilberta.Desktop.v1.3.Windows.x64.exe`**
-2. 双击运行（默认洁尔佩塔）；命令行带参数可指定桌宠：
-   `Gilberta.Desktop.v1.3.Windows.x64.exe --pet=lewantin`
-3. 首次运行若被 SmartScreen 拦截：点「更多信息」→「仍要运行」
-
-> 便携版首次启动需自解压，稍等 1～2 秒她才会出现。
-
-### 方式二：从源代码构建
+### 从源代码运行
 
 ```bat
 git clone https://github.com/M66Y/Endfield-Desktop-Pet.git
 cd Endfield-Desktop-Pet
 npm install
-npm start
+npm start                &rem 洁尔佩塔
+npm run lewantin         &rem 莱万汀
 ```
 
-国内网络拉取 Electron 较慢时，先执行下面这句再 `npm install`：
+国内网络拉取 Electron 较慢时，先执行 `set ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` 再 `npm install`。也可以直接双击 `启动洁尔佩塔.bat` / `启动莱万汀.bat`。
+
+自己打包（分宠产物，命名见上表）：
 
 ```bat
-set ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
+npm run dist             &rem 两只全打
+npm run dist:gilberta    &rem 只打洁尔佩塔
+npm run dist:lewantin    &rem 只打莱万汀
 ```
-
-也可以双击 **启动洁尔佩塔.bat** / **启动莱万汀.bat** 启动对应桌宠（等价
-`npm start` / `npm run lewantin`）。自己打包单文件 exe：
-
-```bat
-npm run dist
-```
-
-产物在 `dist\Gilberta.Desktop.v1.3.Windows.x64.exe`（需 Node.js ≥ 18）。
 
 ### 交互一览
 
@@ -96,24 +80,19 @@ npm run dist
 | <kbd>Alt</kbd>+<kbd>1</kbd>～<kbd>6</kbd> | 直选对应编号的动作（超出该宠动作数则忽略） |
 | 鼠标悬停 / 点击某只 | 该只成为键盘作用目标（双宠并行时避免串扰） |
 | 按住拖动 | 跟着鼠标走，身体随速度倾斜，松手晃两下站稳 |
-| 静静看着 | 洁尔佩塔：呼吸/眨眼/尾巴飘/耳朵抖；莱万汀：呼吸起伏轻摇曳 |
-| 托盘图标 | 每只独立：显示/隐藏、缩放 256↔512、置顶、重启、关闭；全局：Q 开关、Alt+数字开关、退出 |
+| 静静看着 | 洁尔佩塔：呼吸 / 眨眼 / 尾巴飘 / 耳朵抖；莱万汀：呼吸起伏轻摇曳 |
+| 托盘图标 | 每只独立：显示 / 隐藏、缩放 256↔512、置顶、重启、关闭；全局：Q 开关、Alt+数字开关、退出 |
 | 其余桌面区域 | 完全穿透，点不到、挡不着 |
 
 ## ⚠️ 使用注意事项
 
-- **全局热键**：<kbd>Q</kbd> 为系统级热键，桌宠运行期间在任何程序里按 <kbd>Q</kbd> 都会触发动作
-  且不会输入到那个程序；数字直选使用 <kbd>Alt</kbd>+数字，不影响日常打字。需要时托盘右键可分别关闭，
-  开关自动记住。
-- **杀毒软件误报**：便携 exe 未做代码签名，SmartScreen/杀软可能提示未知发布者，
-  添加信任即可；不放心可以完全从源码自行构建。
+- **全局热键**：<kbd>Q</kbd> 是系统级热键，桌宠运行期间在任何程序里按 <kbd>Q</kbd> 都会触发动作且不会输入到那个程序；数字直选用 <kbd>Alt</kbd>+数字，不影响日常打字。托盘右键可分别关闭，开关自动记住。
+- **杀毒软件误报**：便携 exe 未做代码签名，SmartScreen / 杀软可能提示未知发布者，添加信任即可；不放心可以完全从源码自行构建。
 - **系统要求**：Windows 10 / 11 x64；程序不联网，配置只存在本机 `%APPDATA%`。
 - **全屏游戏**：她们永远置顶，进入全屏应用前建议托盘退出，避免遮挡。
-- **找不到她了**：托盘区有狐狸头图标，菜单里每只都可以单独显示/隐藏；若位置跑丢，删除
-  `%APPDATA%\Gilberta Desktop\pets\<宠名>\config.json` 可复位该只到初始位置。
-- **老显卡透明异常/花屏**：源码运行时可用 `.\node_modules\.bin\electron . --disable-gpu`。
-- **Live2D 模式（开发中）**：`npm run live2d` 当前为官方示例模型占位，仅作渲染链路验证，
-  示例模型版权归 Live2D Inc.。
+- **找不到她了**：托盘区有狐狸头图标，菜单里每只都可以单独显示 / 隐藏；若位置跑丢，删除 `%APPDATA%\gilberta-desktop-pet\pets\<宠名>\config.json` 可复位该只到初始位置。
+- **老显卡透明异常 / 花屏**：源码运行时可用 `.\node_modules\.bin\electron . --disable-gpu`。
+- **Live2D 模式（开发中）**：`npm run live2d` 当前为官方示例模型占位，仅作渲染链路验证，示例模型版权归 Live2D Inc.。
 
 <details>
 <summary><b>给开发者：多宠架构与素材管线</b></summary>
@@ -131,44 +110,33 @@ tools/pets/<petId>/         每宠独立素材管线（Python + Pillow/numpy/sci
 userData/pets/<petId>/      每宠独立配置（位置/缩放/置顶）；userData/logs/<petId>.log 独立日志
 ```
 
-**新增一只桌宠** = `src/pets/<id>/pet.json` + `renderer.js` + `assets/pets/<id>/` 三件套，
-main.js 扫描注册表自动发现，无需改动通用代码。
+**新增一只桌宠** = `src/pets/<id>/pet.json` + `renderer.js` + `assets/pets/<id>/` 三件套，main.js 扫描注册表自动发现；再仿照 `dist:lewantin` 加一条打包脚本即可得到独立 exe。不同 exe 共用同一份 userData（配置与单实例锁），双开时第二个实例通过 `requestSingleInstanceLock` 的 `additionalData` 把自己的 petId 转发给已运行实例，同进程唤出、热键唯一注册。
 
-**莱万汀新增一个姿势动作**：参考图放 `tools/pets/lewantin/ref_<动作>.png` → 仿照 `eat_pack.py`
-写 6 行打包脚本（共享管线 `pose_lib.py`：泛洪去底/水印清除/大连通域过滤/去白边/统一规格
-角色高632·帧640·底心锚定）→ `POSE` 表加一条情绪节奏曲线 → `STARTERS` 接一个 start 函数 →
-`pet.json` 的 `actions` 登记编号（顺序即 Q 循环与 Alt+数字序）。
-
-**新增一个动作**（以洁尔佩塔姿势类为例）：素材管线产出 `assets/pets/jielpeita/<name>_00.webp`
-并登记 manifest `clips` → renderer 的 `POSE` 表加时间曲线 + `STARTERS` 加 start 函数 →
-`pet.json` 的 `actions` 按序登记（顺序即 Q 循环与 Alt+数字直选序）。
+**新增一个动作**（以莱万汀姿势类为例）：参考图放 `tools/pets/lewantin/ref_<动作>.png` → 仿照 `eat_pack.py` 写 6 行打包脚本（共享管线 `pose_lib.py`：泛洪去底、水印清除、大连通域过滤、去白边、统一规格角色高632·帧640·底心锚定）→ `POSE` 表加一条情绪节奏曲线 → `STARTERS` 接一个 start 函数 → `pet.json` 的 `actions` 登记编号（顺序即 Q 循环与 Alt+数字序）。
 
 | 想改的东西 | 用什么 |
 | --- | --- |
 | 洁尔佩塔基础切片 | `tools/pets/jielpeita/process.py` —— 参考图抠图、去水印、按折线切可动零件 |
-| 害羞/哭泣整身姿势 | `shy_pose_pack.py` / `cry_pose_pack.py` —— 整只抠出（去底 + 刘海NCC对齐 + 脚底锚点配准 + 去白边） |
+| 害羞 / 哭泣整身姿势 | `shy_pose_pack.py` / `cry_pose_pack.py` —— 整只抠出（去底 + 刘海NCC对齐 + 脚底锚点配准 + 去白边） |
 | 开心帧序列 | `ffmpeg` 抽帧 → `happy_frames.py` 去底 → `happy_pack.py` 打包 → `happy_fix.py` 切灰边配色 → `happy_fit.py` 等比适配 |
-| 莱万汀姿势动作 | `tools/pets/lewantin/pose_lib.py` 共享管线 + 各动作 `*_pack.py`（idle/eat/drop_sad/angry_arms/sleep/wake） |
+| 莱万汀姿势动作 | `tools/pets/lewantin/pose_lib.py` 共享管线 + 各动作 `*_pack.py`（idle / eat / drop_sad / angry_arms / sleep / wake） |
 | 前臂零件 / 表情贴片 / 去白边 | `arms.py` / `face.py` / `defringe.py` |
 | 预览 / 动图 | `npm run preview [-- --pet=lewantin]` 生成截图与帧序列，`python tools/pets/jielpeita/make_gif.py [petId]` 合成 GIF |
 | 回归验证 | `npm run preview` 六张姿势截图应与 `tools/pets/jielpeita/regress_v13_base/` 逐像素一致 |
 
-**隔离设计要点**：每宠独立 BrowserWindow（独立渲染进程，动画状态天然隔离）；资源解析限定
-`assets/pets/<petId>/`；IPC 一律由主进程按 sender 反查归属；键盘热键全局只注册一份，
-按「最近悬停命中或点击选中」的桌宠分发；单实例锁保证多开 bat 在同一进程内唤出对应桌宠。
+**隔离设计要点**：每宠独立 BrowserWindow（独立渲染进程，动画状态天然隔离）；资源解析限定 `assets/pets/<petId>/`；IPC 一律由主进程按 sender 反查归属；键盘热键全局只注册一份，按「最近悬停命中或点击选中」的桌宠分发；单实例锁 + additionalData 保证多开 exe 在同一进程内唤出对应桌宠。
 </details>
 
 ## 🗺 未来开发方向
 
 1. **莱万汀持续陪伴行为**：挂机一段时间自己打瞌睡、雪糕吃完随机小剧场等自动编排
 2. **Live2D 化**：使用 Live2D 对基于豆包生成的模型进行优化，让呼吸、摇晃、表情变成真正的连续变形
-3. **互动气泡**：添加对话/情绪气泡，她们会说话、会吐槽
+3. **互动气泡**：添加对话 / 情绪气泡，她们会说话、会吐槽
 4. **更多互动动作**：持续扩充动作库（打招呼、被戳的搞笑反应……）
 
 ## 📄 许可
 
-[MIT](LICENSE) —— 洁尔佩塔、莱万汀角色设定归《明日方舟：终末地》官方所有，项目内立绘为 AI
-生成的同人素材，仅供个人娱乐，请勿商用。
+[MIT](LICENSE) —— 洁尔佩塔、莱万汀角色设定归《明日方舟：终末地》官方所有，项目内立绘为 AI 生成的同人素材，仅供个人娱乐，请勿商用。
 
 ---
 

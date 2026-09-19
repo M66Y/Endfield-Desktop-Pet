@@ -9,3 +9,4 @@ tools/pets/*/tmp_happy_orig/
 tools/pets/*/ref_*.png
 tools/pets/*/dbg_*.png
 tools/pets/jielpeita/regress_old/
+.mimosa/
