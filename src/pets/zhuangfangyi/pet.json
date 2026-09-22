@@ -6,9 +6,8 @@
   "defaultZoom": 1,
   "actions": [
     { "index": 1, "id": "shy", "label": "害羞" },
-    { "index": 2, "id": "confused", "label": "疑惑" },
-    { "index": 3, "id": "heart", "label": "比心" },
-    { "index": 4, "id": "angry", "label": "生气" },
-    { "index": 5, "id": "happy", "label": "开心" }
+    { "index": 2, "id": "heart", "label": "比心" },
+    { "index": 3, "id": "angry", "label": "生气" },
+    { "index": 4, "id": "happy", "label": "开心" }
   ]
 }
