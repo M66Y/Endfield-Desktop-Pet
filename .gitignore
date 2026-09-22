@@ -10,3 +10,5 @@ tools/pets/*/ref_*.png
 tools/pets/*/dbg_*.png
 tools/pets/jielpeita/regress_old/
 .mimosa/
+.zcodeignore
+build/icon_source.png

@@ -1,0 +1,14 @@
+{
+  "id": "zhuangfangyi",
+  "name": "庄方宜",
+  "version": "0.1.0",
+  "renderer": "renderer.js",
+  "defaultZoom": 1,
+  "actions": [
+    { "index": 1, "id": "shy", "label": "害羞" },
+    { "index": 2, "id": "confused", "label": "疑惑" },
+    { "index": 3, "id": "heart", "label": "比心" },
+    { "index": 4, "id": "angry", "label": "生气" },
+    { "index": 5, "id": "happy", "label": "开心" }
+  ]
+}

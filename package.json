@@ -1,18 +1,24 @@
 {
   "name": "gilberta-desktop-pet",
   "productName": "Gilberta Desktop",
-  "version": "1.4.0",
-  "description": "《明日方舟：终末地》洁尔佩塔 & 莱万汀 Q版桌面宠物（Electron + Canvas 实时渲染，多宠隔离架构）",
+  "version": "1.5.0",
+  "description": "《明日方舟：终末地》洁尔佩塔 & 莱万汀 & 庄方宜 & 汤汤 Q版桌面宠物（Electron + Canvas 实时渲染，多宠隔离架构）",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "lewantin": "electron . --pet=lewantin",
+    "zhuangfangyi": "electron . --pet=zhuangfangyi",
+    "tangtang": "electron . --pet=tangtang",
     "preview": "electron . --preview",
     "preview:lewantin": "electron . --preview --pet=lewantin",
+    "preview:zhuangfangyi": "electron . --preview --pet=zhuangfangyi",
+    "preview:tangtang": "electron . --preview --pet=tangtang",
     "live2d": "electron . --live2d",
-    "dist": "npm run dist:gilberta && npm run dist:lewantin",
+    "dist": "npm run dist:gilberta && npm run dist:lewantin && npm run dist:zhuangfangyi && npm run dist:tangtang",
     "dist:gilberta": "electron-builder --win portable --x64 -c.extraMetadata.petId=jielpeita -c.portable.artifactName=Endfield-Desktop-Pet-${version}-Windows-x64-Gilberta.exe",
-    "dist:lewantin": "electron-builder --win portable --x64 -c.extraMetadata.petId=lewantin -c.productName=\"Lewantin Desktop\" -c.portable.artifactName=Endfield-Desktop-Pet-${version}-Windows-x64-Lewantin.exe"
+    "dist:lewantin": "electron-builder --win portable --x64 -c.extraMetadata.petId=lewantin -c.productName=\"Lewantin Desktop\" -c.portable.artifactName=Endfield-Desktop-Pet-${version}-Windows-x64-Lewantin.exe",
+    "dist:zhuangfangyi": "electron-builder --win portable --x64 -c.extraMetadata.petId=zhuangfangyi -c.productName=\"Zhuang Fangyi Desktop\" -c.portable.artifactName=Endfield-Desktop-Pet-${version}-Windows-x64-ZhuangFangyi.exe",
+    "dist:tangtang": "electron-builder --win portable --x64 -c.extraMetadata.petId=tangtang -c.productName=\"Tangtang Desktop\" -c.portable.artifactName=Endfield-Desktop-Pet-${version}-Windows-x64-Tangtang.exe"
   },
   "author": "M66Y",
   "license": "MIT",
@@ -35,7 +41,8 @@
       "preload.js",
       "src/**/*",
       "assets/**/*",
-      "vendor/**/*"
+      "vendor/**/*",
+      "build/icon.png"
     ],
     "win": {
       "target": [

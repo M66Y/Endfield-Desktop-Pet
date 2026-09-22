@@ -1,5 +1,5 @@
-# 把 preview/<petId>/gif_*.png 帧组装成动画 GIF（默认洁尔佩塔）
-# 用法: python tools/pets/jielpeita/make_gif.py [petId]
+# 把 preview/<petId>/gif_*.png 帧组装成动画 GIF
+# 用法: python tools/shared/make_gif.py [petId]   (默认 jielpeita；需先跑 npm run preview [-- --pet=<id>])
 import glob
 import sys
 

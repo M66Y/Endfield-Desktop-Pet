@@ -90,8 +90,13 @@ function migrateLegacyCfg() {
   } catch (e) { mainWarn('legacy config migrate failed:', e.message); }
 }
 
-// ---------- 托盘图标：程序内像素画一只小狐狸头（32x32 BGRA） ----------
+// ---------- 托盘图标 ----------
 function trayIcon() {
+  // 优先用应用图标（build/icon.png，随包分发）；不可用时回退程序内像素画狐狸头
+  try {
+    const img = nativeImage.createFromPath(path.join(__dirname, 'build', 'icon.png'));
+    if (!img.isEmpty()) return img;
+  } catch (e) { /* fallthrough */ }
   const W = 32, H = 32;
   const buf = Buffer.alloc(W * H * 4, 0);
   const set = (x, y, c, a = 255) => {

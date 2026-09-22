@@ -1,0 +1,12 @@
+{
+  "id": "tangtang",
+  "name": "汤汤",
+  "version": "0.1.0",
+  "renderer": "renderer.js",
+  "defaultZoom": 1,
+  "actions": [
+    { "index": 1, "id": "yawn", "label": "打哈欠" },
+    { "index": 2, "id": "hop", "label": "开心蹦跳" },
+    { "index": 3, "id": "shy", "label": "害羞" }
+  ]
+}

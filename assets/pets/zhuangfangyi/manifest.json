@@ -1,0 +1,63 @@
+{
+ "canvas": {
+  "w": 504,
+  "h": 640
+ },
+ "feetY": 640,
+ "clips": {
+  "idle": {
+   "count": 1,
+   "fps": 1,
+   "ext": "webp",
+   "ox": 4,
+   "oy": 4,
+   "w": 485,
+   "h": 632
+  },
+  "shy": {
+   "count": 1,
+   "fps": 1,
+   "ext": "webp",
+   "ox": 4,
+   "oy": 4,
+   "w": 482,
+   "h": 632
+  },
+  "confused": {
+   "count": 1,
+   "fps": 1,
+   "ext": "webp",
+   "ox": 32,
+   "oy": 4,
+   "w": 404,
+   "h": 632
+  },
+  "heart": {
+   "count": 1,
+   "fps": 1,
+   "ext": "webp",
+   "ox": 14,
+   "oy": 4,
+   "w": 440,
+   "h": 632
+  },
+  "angry": {
+   "count": 1,
+   "fps": 1,
+   "ext": "webp",
+   "ox": 4,
+   "oy": 4,
+   "w": 468,
+   "h": 632
+  },
+  "happy": {
+   "count": 1,
+   "fps": 1,
+   "ext": "webp",
+   "ox": 4,
+   "oy": 4,
+   "w": 496,
+   "h": 632
+  }
+ }
+}
