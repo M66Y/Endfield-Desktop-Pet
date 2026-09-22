@@ -12,13 +12,12 @@
 [![Electron](https://img.shields.io/badge/electron-33-47848F?logo=electron&logoColor=white)](https://www.electronjs.org/)
 [![Stars](https://img.shields.io/github/stars/M66Y/Endfield-Desktop-Pet?style=social)](https://github.com/M66Y/Endfield-Desktop-Pet/stargazers)
 
-<table><tr>
-<td align="center"><img src="docs/demo.gif" width="300" alt="洁尔佩塔演示动画：待机 → 踢腿 → 害羞 → 开心 → 哭泣"><br><b>洁尔佩塔</b></td>
-<td align="center"><img src="docs/lewantin.gif" width="300" alt="莱万汀演示动画：持雪糕 → 吃雪糕 → 掉了委屈 → 生气抱臂 → 打瞌睡 → 被叫醒"><br><b>莱万汀</b></td>
-</tr><tr>
-<td align="center"><img src="docs/zhuangfangyi.gif" width="300" alt="庄方宜演示动画：安静待机 → 害羞 → 比心 → 生气 → 开心"><br><b>庄方宜</b></td>
-<td align="center"><img src="docs/tangtang.gif" width="300" alt="汤汤演示动画：待机倒茶 → 打哈欠 → 开心蹦跳 → 害羞"><br><b>汤汤</b></td>
-</tr></table>
+<p>
+  <img src="docs/demo.gif" width="200" alt="洁尔佩塔演示动画：待机 → 踢腿 → 害羞 → 开心 → 哭泣">
+  <img src="docs/lewantin.gif" width="200" alt="莱万汀演示动画：持雪糕 → 吃雪糕 → 掉了委屈 → 生气抱臂 → 打瞌睡 → 被叫醒">
+  <img src="docs/zhuangfangyi.gif" width="200" alt="庄方宜演示动画：安静待机 → 害羞 → 比心 → 生气 → 开心">
+  <img src="docs/tangtang.gif" width="200" alt="汤汤演示动画：待机倒茶 → 打哈欠 → 开心蹦跳 → 害羞">
+</p>
 
 [快速开始](#-快速开始) · [功能特性](#-功能特性) · [使用与配置](#-使用与配置) · [常见问题](#-常见问题) · [参与贡献](#-参与贡献) · [相关链接](#-相关链接)
 
